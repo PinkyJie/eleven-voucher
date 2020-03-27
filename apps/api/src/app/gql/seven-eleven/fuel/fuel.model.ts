@@ -1,4 +1,4 @@
-import { Field, ObjectType, Float } from '@nestjs/graphql';
+import { Field, ObjectType, Float, registerEnumType } from '@nestjs/graphql';
 
 export enum FuelType {
   E10 = 'E10',
@@ -9,9 +9,13 @@ export enum FuelType {
   LPG = 'LPG',
 }
 
+registerEnumType(FuelType, {
+  name: 'FuelType',
+});
+
 @ObjectType()
 export class FuelPrice {
-  @Field({ description: 'Fuel type' })
+  @Field(() => FuelType, { description: 'Fuel type' })
   type: FuelType;
 
   @Field(() => Float, { description: 'Fuel price' })

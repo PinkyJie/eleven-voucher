@@ -4,52 +4,58 @@ import { EmailMessage, EmailMessageWithBody } from './email.model';
 
 @Injectable()
 export class EmailService {
-  private prefix = '711locker';
-  private url = 'https://www.1secmail.com/api/v1';
-  private domain = '1secmail.com';
-
-  getEmailFleet(fuelType: any): string[] {
-    const count = 5;
-    return new Array(count)
-      .fill(0)
-      .map((_, idx) => `${this.prefix}-${fuelType}-${idx}@${this.domain}`);
-  }
+  private url = 'https://www.1secmail.com/api/v1/';
 
   async getEmailMessages(email: string): Promise<EmailMessage[]> {
-    return axios.get(this.url, {
-      data: {
+    const [login, domain] = email.split('@');
+    const response = await axios.get(this.url, {
+      params: {
         action: 'getMessages',
-        login: email,
-        domain: this.domain,
+        login,
+        domain,
       },
     });
+    return response.data;
   }
 
   async getEmailMessage(
     email: string,
     id: number
   ): Promise<EmailMessageWithBody> {
-    return axios.get(this.url, {
-      data: {
-        action: 'getMessage',
-        login: email,
-        domain: this.domain,
+    const [login, domain] = email.split('@');
+    const response = await axios.get(this.url, {
+      params: {
+        action: 'readMessage',
+        login,
+        domain,
         id,
       },
     });
+    return response.data;
   }
 
-  async visitActivationLink(messageBody: string): Promise<boolean> {
+  async clickVerificationLinkInEmail(email: string): Promise<boolean> {
+    const messages = await this.getEmailMessages(email);
+    const activationMessage = messages.find(
+      message =>
+        message.from === 'donotreply@my7elevencard.com.au' &&
+        message.subject === '7-Eleven Card Email Confirmation'
+    );
+    if (!activationMessage) {
+      return false;
+    }
+    const activationMessageWithBody = await this.getEmailMessage(
+      email,
+      activationMessage.id
+    );
     const re = /href="(https:\/\/711-goodcall\.api\.tigerspike\.com\/link\/appredirect.*?)"/;
-    const matched = re.exec(messageBody);
+    const matched = re.exec(activationMessageWithBody.body);
     if (matched && matched.length > 1) {
-      const response = await axios.get(
-        matched[1].replace('https://', 'http://')
-      );
+      const response = await axios.get(matched[1]);
       if (response.status === 200) {
         return true;
       }
     }
-    return Promise.resolve(false);
+    return false;
   }
 }
