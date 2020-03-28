@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
 import { request } from '../utils/request';
-import { Voucher } from './voucher.model';
 import { FuelType } from '../fuel/fuel.model';
+
+import { Voucher } from './voucher.model';
 
 const fuelTypes = [
   {

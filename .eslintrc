@@ -12,7 +12,7 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:import/errors",
+    "plugin:import/recommended",
     "plugin:import/typescript",
     "prettier",
     "prettier/@typescript-eslint"
@@ -29,6 +29,12 @@
         "depConstraints": [
           { "sourceTag": "*", "onlyDependOnLibsWithTags": ["*"] }
         ]
+      }
+    ],
+    "import/order": [
+      "error",
+      {
+        "newlines-between": "always"
       }
     ]
   },

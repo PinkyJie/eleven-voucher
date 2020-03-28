@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+
 import { EmailMessage, EmailMessageWithBody } from './email.model';
 
 @Injectable()

@@ -1,4 +1,5 @@
 import { Field, ArgsType, InputType } from '@nestjs/graphql';
+
 import { FuelType } from '../fuel/fuel.model';
 
 @ArgsType()

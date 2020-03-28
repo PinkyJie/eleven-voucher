@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+
 import { request } from '../utils/request';
 import { DEVICE_NAME, ANDROID_VERSION } from '../utils/constant';
+
 import { Account } from './account.model';
 
 interface LoginResponse {

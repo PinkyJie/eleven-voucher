@@ -1,3 +1,5 @@
+import axios, { Method } from 'axios';
+
 import { generateTssa } from './encrypt';
 import {
   BASE_URL,
@@ -6,8 +8,6 @@ import {
   DEVICE_ID,
   APP_VERSION,
 } from './constant';
-
-import axios, { Method } from 'axios';
 
 export async function request(options: {
   url: string;

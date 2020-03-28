@@ -1,5 +1,6 @@
-import { Account } from './account.model';
 import { Resolver, Args, Query, Mutation } from '@nestjs/graphql';
+
+import { Account } from './account.model';
 import { AccountService } from './account.service';
 import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 
