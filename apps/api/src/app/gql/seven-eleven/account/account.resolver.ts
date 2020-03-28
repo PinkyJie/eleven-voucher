@@ -8,12 +8,12 @@ import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 export class AccountResolver {
   constructor(private accountService: AccountService) {}
 
-  @Query()
+  @Query(() => String, { description: 'Health check' })
   healthCheck(): string {
     return 'OK';
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { description: 'Register a new account' })
   async register(
     @Args('registerAccountInput') registerAccountInput: RegisterAccountInput
   ): Promise<boolean> {
@@ -27,12 +27,12 @@ export class AccountResolver {
     );
   }
 
-  @Mutation(() => Account)
+  @Mutation(() => Account, { description: 'Log in' })
   async login(@Args('loginInput') loginInput: LoginInput): Promise<Account> {
     return this.accountService.login(loginInput.email, loginInput.password);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { description: 'Log out' })
   async logout(
     @Args('logoutInput') logoutInput: LogoutInput
   ): Promise<boolean> {
