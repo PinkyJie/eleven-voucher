@@ -19,6 +19,7 @@ export const createNestServer = async expressInstance => {
   );
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
+  app.enableCors();
 
   if (process.env.GCLOUD_PROJECT) {
     return app.init();
