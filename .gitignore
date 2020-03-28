@@ -40,3 +40,7 @@ Thumbs.db
 
 # generated schema
 schema.gql
+
+# deploy
+.firebase
+firebase-deploy

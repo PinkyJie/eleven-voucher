@@ -7,9 +7,9 @@ import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 export class AccountResolver {
   constructor(private accountService: AccountService) {}
 
-  @Query(() => String, { name: 'dummy' })
-  dummy(): string {
-    return 'Dummy';
+  @Query()
+  healthCheck(): string {
+    return 'OK';
   }
 
   @Mutation(() => Boolean)

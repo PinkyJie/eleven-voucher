@@ -4,17 +4,30 @@
  */
 
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import * as express from 'express';
+import * as functions from 'firebase-functions';
 
 import { AppModule } from './app/app.module';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const server = express();
+
+export const createNestServer = async expressInstance => {
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(expressInstance)
+  );
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.port || 3333;
-  await app.listen(port, () => {
-    console.log('Listening at http://localhost:' + port + '/' + globalPrefix);
-  });
-}
 
-bootstrap();
+  if (process.env.GCLOUD_PROJECT) {
+    return app.init();
+  }
+  return app.listen(process.env.port || 3333, '');
+};
+
+createNestServer(server)
+  .then(() => console.log('Nest is ready!'))
+  .catch(err => console.error('Nest is broken!', err));
+
+export const api = functions.https.onRequest(server);

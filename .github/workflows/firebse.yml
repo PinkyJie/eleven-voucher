@@ -1,0 +1,35 @@
+name: Firebase deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  firebase-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: '10.x'
+      - name: Install dependencies
+        run: yarn install
+      - name: Linting
+        run: |
+          yarn lint web
+          yarn lint api
+      - name: Build for production
+        run: |
+          yarn build web --prod
+          yarn build api --prod
+      - name: Setup folder for firebase deploy
+        run: |
+          mkdir firebase-deploy
+          cp dist/apps/api/* package.json firebase-deploy
+      - uses: w9jds/firebase-action@master
+        with:
+          args: deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

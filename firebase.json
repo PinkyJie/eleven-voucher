@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "source": "firebase-deploy"
+  },
+  "hosting": {
+    "public": "dist/apps/web",
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

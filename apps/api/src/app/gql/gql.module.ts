@@ -9,7 +9,13 @@ import { EmailModule } from './email/email.module';
     EmailModule,
     SevenElevenModule,
     GraphQLModule.forRoot({
-      autoSchemaFile: 'schema.gql',
+      playground: true,
+      ...(process.env.GCLOUD_PROJECT
+        ? {
+            // firebase deployment doesn't support file generation
+            autoSchemaFile: true,
+          }
+        : { autoSchemaFile: 'schema.gql' }),
     }),
   ],
 })
