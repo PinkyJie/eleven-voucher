@@ -46,8 +46,10 @@
     "react-dom": "16.13.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.5.4",
-    "styled-components": "5.0.1",
-    "uuid": "^7.0.2"
+    "uuid": "^7.0.2",
+    "@emotion/styled": "10.0.27",
+    "@emotion/core": "10.0.28",
+    "react-router-dom": "5.1.2"
   },
   "devDependencies": {
     "@nestjs/schematics": "^7.0.0",
@@ -63,9 +65,8 @@
     "@testing-library/react": "9.4.0",
     "@types/jest": "24.9.1",
     "@types/node": "~8.9.4",
-    "@types/react": "16.9.17",
-    "@types/react-dom": "16.9.4",
-    "@types/styled-components": "4.4.2",
+    "@types/react": "16.9.27",
+    "@types/react-dom": "16.9.5",
     "@types/uuid": "^7.0.2",
     "@typescript-eslint/eslint-plugin": "2.19.2",
     "@typescript-eslint/parser": "2.19.2",
@@ -81,6 +82,7 @@
     "ts-jest": "24.0.0",
     "ts-node": "~7.0.0",
     "tslint": "~6.0.0",
-    "typescript": "~3.8.3"
+    "typescript": "~3.8.3",
+    "@types/react-router-dom": "5.1.3"
   }
 }
