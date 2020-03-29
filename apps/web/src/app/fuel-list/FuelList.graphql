@@ -1,0 +1,29 @@
+query GetFuelPrice {
+  fuel {
+    E10 {
+      price
+      name
+    }
+    U91 {
+      price
+      name
+    }
+    U95 {
+      price
+      name
+    }
+    U98 {
+      price
+      name
+    }
+    Diesel {
+      price
+      name
+    }
+    LPG {
+      price
+      name
+    }
+    updated
+  }
+}

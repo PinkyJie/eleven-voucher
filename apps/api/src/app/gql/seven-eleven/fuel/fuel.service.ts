@@ -34,11 +34,16 @@ export class FuelService {
 
   async getFuelPrices(): Promise<Fuel> {
     const response = await axios.get(this.url);
-    const { regions } = response.data as FuelResponse;
+    const { regions, updated } = response.data as FuelResponse;
     const allRegion = regions.find(region => region.region === 'All');
-    return allRegion.prices.reduce((result, price) => {
-      result[price.type] = price;
-      return result;
-    }, {} as Fuel);
+    return allRegion.prices.reduce(
+      (result, price) => {
+        result[price.type] = price;
+        return result;
+      },
+      {
+        updated,
+      } as Fuel
+    );
   }
 }

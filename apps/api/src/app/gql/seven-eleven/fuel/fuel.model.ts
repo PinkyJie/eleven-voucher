@@ -1,4 +1,10 @@
-import { Field, ObjectType, Float, registerEnumType } from '@nestjs/graphql';
+import {
+  Field,
+  ObjectType,
+  Float,
+  registerEnumType,
+  Int,
+} from '@nestjs/graphql';
 
 export enum FuelType {
   E10 = 'E10',
@@ -63,4 +69,7 @@ export class Fuel {
 
   @Field({ description: 'Best fuel price of LPG' })
   LPG: FuelPrice;
+
+  @Field(() => Int, { description: 'Last updated timestamp' })
+  updated: number;
 }

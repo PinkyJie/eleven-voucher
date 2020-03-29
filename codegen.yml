@@ -1,0 +1,13 @@
+overwrite: true
+schema: './schema.gql'
+documents: './apps/web/src/app/**/*.graphql'
+config:
+  namingConvention: keep
+generates:
+  ./apps/web/src/generated/generated.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+  ./apps/web/src/generated/generated.d.ts:
+    plugins:
+      - 'typescript-graphql-files-modules'
