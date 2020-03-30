@@ -2,7 +2,9 @@ overwrite: true
 schema: './schema.gql'
 documents: './apps/web/src/app/**/*.graphql'
 config:
-  namingConvention: keep
+  namingConvention:
+    typeNames: pascal-case#pascalCase
+    enumValues: keep
 generates:
   ./apps/web/src/generated/generated.ts:
     plugins:

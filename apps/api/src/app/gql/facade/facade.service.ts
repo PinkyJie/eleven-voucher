@@ -46,31 +46,49 @@ export class FacadeService {
     if (registerResponse === false) {
       throw new Error('Registration fail');
     }
+    console.log('1. Account registration - success');
+    console.log(`Email: ${email}`);
+    console.log(`Password: ${password}`);
 
     // 2. get best fuel price
     const fuelPriceResponse = await this.fuelService.getFuelPrices();
-    const { lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
+    const { price, lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
+
+    console.log('2. Get fuel price - success');
+    console.log(`Fuel type: ${fuelType}`);
+    console.log(`Price: ${price}`);
+    console.log(`Latitude: ${lat}`);
+    console.log(`Longitude: ${lng}`);
 
     // 3. get verification code from email
     // wait email to be arrived
-    let maxAttempt = 5;
+    console.log('3. Get verification code');
+    let maxAttempts = 5;
+    console.log(`Max attempts: ${maxAttempts}`);
     let verificationCode = '';
-    while (maxAttempt--) {
+    while (maxAttempts > 0) {
+      console.log(`Attempt: ${maxAttempts - 5}`);
       verificationCode = await this.emailService.findVerificationCodeInEmail(
         email
       );
+      console.log(`Verification code: ${verificationCode}`);
       if (verificationCode) {
         break;
       }
+      console.log(`Wait for 500ms before next attempt`);
       await sleep(500);
+      maxAttempts--;
     }
 
     if (!verificationCode) {
-      throw new Error('Email verification fail');
+      throw new Error('Get verification code fail');
     }
 
     // 4. verify account
     const verifyResponse = await this.accountService.verify(verificationCode);
+
+    console.log('4. Verify account - success');
+    console.log(verifyResponse);
 
     // 5. lock in the price
     const lockInResponse = await this.voucherService.lockInVoucher(
@@ -85,6 +103,10 @@ export class FacadeService {
     if (!lockInResponse) {
       throw new Error('Lock in fail');
     }
+
+    console.log('5. Lock in voucher - success');
+    console.log(`Voucher code: ${lockInResponse.code}`);
+
     return {
       account: {
         email,

@@ -1,0 +1,19 @@
+mutation GenAccountAndLockInVoucher($fuelType: String!) {
+  genAccountAndLockInVoucher(fuelType: $fuelType) {
+    account {
+      email
+      password
+    }
+    voucher {
+      id
+      status
+      code
+      fuelType
+      fuelPrice
+      liters
+      storeId
+      createdAt
+      expiredAt
+    }
+  }
+}

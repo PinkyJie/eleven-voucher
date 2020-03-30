@@ -41,6 +41,7 @@
     "@nestjs/platform-express": "^7.0.6",
     "apollo-server-express": "^2.11.0",
     "axios": "^0.19.2",
+    "bwip-js": "^2.0.6",
     "date-fns": "^2.11.1",
     "document-register-element": "1.13.1",
     "faker": "^4.1.0",

@@ -4543,6 +4543,11 @@ busboy@^0.3.1:
   dependencies:
     dicer "0.3.0"
 
+bwip-js@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/bwip-js/-/bwip-js-2.0.6.tgz#2189bf1ae9518974a5d73513605939989a98a17e"
+  integrity sha512-25zupM+tgx6NGmrg0kFhdkddeQ5+QnUMvHbb7cPNVbBdFDd0SOG3xRZ1ocGDEamhmM+fStglCLEkH21OpD4Y/w==
+
 bytes@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.0.0.tgz#d32815404d689699f85a4ea4fa8755dd13a96048"

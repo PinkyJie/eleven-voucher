@@ -22,6 +22,14 @@ export type Account = {
   accessToken: Scalars['String'];
 };
 
+export type AccountAndVoucher = {
+   __typename?: 'AccountAndVoucher';
+  /** The newly registered account */
+  account: NewAccount;
+  /** The lock in voucher */
+  voucher?: Maybe<Voucher>;
+};
+
 export type EmailMessage = {
    __typename?: 'EmailMessage';
   /** Message ID */
@@ -102,10 +110,10 @@ export type LockInInput = {
   fuelType: FuelType;
   /** Liters */
   liters?: Maybe<Scalars['Float']>;
-  /** The latitude of the store location */
-  storeLatitude: Scalars['Float'];
-  /** The longitude of the store location */
-  storeLongitude: Scalars['Float'];
+  /** The latitude of the device location */
+  deviceLatitude: Scalars['Float'];
+  /** The longitude of the device location */
+  deviceLongitude: Scalars['Float'];
   /** Device secret token */
   deviceSecretToken: Scalars['String'];
   /** Access token */
@@ -134,35 +142,50 @@ export type Mutation = {
   login: Account;
   /** Log out */
   logout: Scalars['Boolean'];
+  /** Verify account */
+  verify: Account;
   /** Lock in the fuel price voucher. */
-  lockInVoucher: Scalars['Boolean'];
-  /** Click the verification link in the email. */
-  clickVerificationLinkInEmail: Scalars['Boolean'];
+  lockInVoucher?: Maybe<Voucher>;
+  /** Get a voucher directly. */
+  genAccountAndLockInVoucher: AccountAndVoucher;
 };
 
 
-export type MutationregisterArgs = {
+export type MutationRegisterArgs = {
   registerAccountInput: RegisterAccountInput;
 };
 
 
-export type MutationloginArgs = {
+export type MutationLoginArgs = {
   loginInput: LoginInput;
 };
 
 
-export type MutationlogoutArgs = {
+export type MutationLogoutArgs = {
   logoutInput: LogoutInput;
 };
 
 
-export type MutationlockInVoucherArgs = {
+export type MutationVerifyArgs = {
+  verificationCode: Scalars['String'];
+};
+
+
+export type MutationLockInVoucherArgs = {
   lockInInput: LockInInput;
 };
 
 
-export type MutationclickVerificationLinkInEmailArgs = {
+export type MutationGenAccountAndLockInVoucherArgs = {
+  fuelType: Scalars['String'];
+};
+
+export type NewAccount = {
+   __typename?: 'NewAccount';
+  /** The account email address */
   email: Scalars['String'];
+  /** The account password */
+  password: Scalars['String'];
 };
 
 export type Query = {
@@ -179,29 +202,36 @@ export type Query = {
   emailMessages: Array<Maybe<EmailMessage>>;
   /** Retrieve a message with a specific message ID. */
   emailMessage?: Maybe<EmailMessageWithBody>;
+  /** Retrieve the verification code in the email. */
+  findVerificationCodeInEmail?: Maybe<Scalars['String']>;
 };
 
 
-export type QueryvouchersArgs = {
+export type QueryVouchersArgs = {
   accessToken: Scalars['String'];
   deviceSecretToken: Scalars['String'];
 };
 
 
-export type QuerylastUsedVoucherArgs = {
+export type QueryLastUsedVoucherArgs = {
   accessToken: Scalars['String'];
   deviceSecretToken: Scalars['String'];
   voucherId: Scalars['String'];
 };
 
 
-export type QueryemailMessagesArgs = {
+export type QueryEmailMessagesArgs = {
   email: Scalars['String'];
 };
 
 
-export type QueryemailMessageArgs = {
+export type QueryEmailMessageArgs = {
   id: Scalars['Float'];
+  email: Scalars['String'];
+};
+
+
+export type QueryFindVerificationCodeInEmailArgs = {
   email: Scalars['String'];
 };
 
@@ -241,6 +271,25 @@ export type Voucher = {
   /** The expiration timestamp for the voucher */
   expiredAt: Scalars['Int'];
 };
+
+export type GenAccountAndLockInVoucherMutationVariables = {
+  fuelType: Scalars['String'];
+};
+
+
+export type GenAccountAndLockInVoucherMutation = (
+  { __typename?: 'Mutation' }
+  & { genAccountAndLockInVoucher: (
+    { __typename?: 'AccountAndVoucher' }
+    & { account: (
+      { __typename?: 'NewAccount' }
+      & Pick<NewAccount, 'email' | 'password'>
+    ), voucher?: Maybe<(
+      { __typename?: 'Voucher' }
+      & Pick<Voucher, 'id' | 'status' | 'code' | 'fuelType' | 'fuelPrice' | 'liters' | 'storeId' | 'createdAt' | 'expiredAt'>
+    )> }
+  ) }
+);
 
 export type GetFuelPriceQueryVariables = {};
 

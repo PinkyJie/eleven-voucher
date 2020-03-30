@@ -4,8 +4,8 @@ import { Global, css } from '@emotion/core';
 import { Route } from 'react-router-dom';
 import { Header, Icon } from 'semantic-ui-react';
 
-import { FuelList } from './fuel-list';
-import { FuelDetail } from './fuel-detail';
+import { FuelList, FuelDetail } from './components';
+import { FuelPriceContextProvider } from './context';
 
 const StyledApp = styled.div`
   min-width: 300px;
@@ -38,14 +38,16 @@ export class App extends Component {
             Get your fuel voucher with just one-click.
           </Header.Subheader>
         </StyledHeader>
-        <main>
-          <Route path="/" exact>
-            <FuelList />
-          </Route>
-          <Route path="/fuel/:fuelType" exact>
-            <FuelDetail />
-          </Route>
-        </main>
+        <FuelPriceContextProvider>
+          <main>
+            <Route path="/" exact>
+              <FuelList />
+            </Route>
+            <Route path="/fuel/:fuelType" exact>
+              <FuelDetail />
+            </Route>
+          </main>
+        </FuelPriceContextProvider>
       </StyledApp>
     );
   }

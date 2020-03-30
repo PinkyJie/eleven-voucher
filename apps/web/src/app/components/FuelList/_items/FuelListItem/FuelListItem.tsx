@@ -4,9 +4,9 @@ import { Card, Button, Image } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { formatDistance } from 'date-fns';
 
-import { FuelType } from '../../generated/generated';
+import { FuelType } from '../../../../../generated/generated';
 
-export interface FuelCardProps {
+export interface FuelListItemProps {
   type: FuelType;
   price: number;
   updated: Date;
@@ -17,12 +17,12 @@ const StyledCard = styled(Card)`
   margin: 1em auto !important;
 `;
 
-export const FuelCard = ({
+export const FuelListItem = ({
   type,
   price,
   updated,
   storeName,
-}: FuelCardProps) => {
+}: FuelListItemProps) => {
   const fuelMap = {
     [FuelType.E10]: {
       image: '/assets/fueltype_e10.gif',
@@ -61,14 +61,16 @@ export const FuelCard = ({
   return (
     <StyledCard>
       <Image src={fuelMap[type].image} wrapped ui={false} />
-      <Card.Content>
-        <Card.Header>
+      <Card.Content textAlign="center">
+        <Card.Header textAlign="center">
           {fuelMap[type].title} - ${price} c/L
         </Card.Header>
-        <Card.Meta>Updated at {formatDistance(updated, now)}</Card.Meta>
-        <Card.Meta>{storeName}</Card.Meta>
+        <Card.Meta textAlign="center">
+          Updated at {formatDistance(updated, now)}
+        </Card.Meta>
+        <Card.Meta textAlign="center">{storeName}</Card.Meta>
       </Card.Content>
-      <Card.Content extra>
+      <Card.Content textAlign="center" extra>
         <Link to={fuelMap[type].route}>
           <Button primary>Get me a Voucher!</Button>
         </Link>
