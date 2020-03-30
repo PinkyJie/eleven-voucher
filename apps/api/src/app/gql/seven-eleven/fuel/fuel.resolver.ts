@@ -3,7 +3,7 @@ import { Resolver, Query } from '@nestjs/graphql';
 import { Fuel } from './fuel.model';
 import { FuelService } from './fuel.service';
 
-@Resolver(() => Fuel)
+@Resolver()
 export class FuelResolver {
   constructor(private fuelService: FuelService) {}
 

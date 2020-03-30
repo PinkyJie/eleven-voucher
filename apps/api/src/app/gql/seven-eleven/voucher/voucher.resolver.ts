@@ -4,7 +4,7 @@ import { Voucher } from './voucher.model';
 import { VoucherService } from './voucher.service';
 import { LockInInput } from './voucher.dto';
 
-@Resolver(() => Voucher)
+@Resolver()
 export class VoucherResolver {
   constructor(private voucherService: VoucherService) {}
 
@@ -36,19 +36,20 @@ export class VoucherResolver {
     );
   }
 
-  @Mutation(() => Boolean, {
+  @Mutation(() => Voucher, {
     name: '',
     description: 'Lock in the fuel price voucher.',
+    nullable: true,
   })
   async lockInVoucher(
     @Args('lockInInput') lockInInput: LockInInput
-  ): Promise<boolean> {
+  ): Promise<Voucher> {
     return this.voucherService.lockInVoucher(
       lockInInput.accountId,
       lockInInput.fuelType,
       lockInInput.liters,
-      lockInInput.storeLatitude,
-      lockInInput.storeLongitude,
+      lockInInput.deviceLatitude,
+      lockInInput.deviceLongitude,
       lockInInput.deviceSecretToken,
       lockInInput.accessToken
     );

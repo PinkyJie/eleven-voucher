@@ -5,5 +5,6 @@ import { VoucherService } from './voucher.service';
 
 @Module({
   providers: [VoucherResolver, VoucherService],
+  exports: [VoucherService],
 })
 export class VoucherModule {}

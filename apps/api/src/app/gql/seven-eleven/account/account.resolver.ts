@@ -4,7 +4,7 @@ import { Account } from './account.model';
 import { AccountService } from './account.service';
 import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 
-@Resolver(() => Account)
+@Resolver()
 export class AccountResolver {
   constructor(private accountService: AccountService) {}
 
@@ -40,5 +40,12 @@ export class AccountResolver {
       logoutInput.deviceSecretToken,
       logoutInput.accessToken
     );
+  }
+
+  @Mutation(() => Account, { description: 'Verify account' })
+  async verify(
+    @Args('verificationCode') verificationCode: string
+  ): Promise<Account> {
+    return this.accountService.verify(verificationCode);
   }
 }

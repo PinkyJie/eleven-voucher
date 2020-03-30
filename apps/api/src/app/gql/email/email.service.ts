@@ -35,7 +35,7 @@ export class EmailService {
     return response.data;
   }
 
-  async clickVerificationLinkInEmail(email: string): Promise<boolean> {
+  async findVerificationCodeInEmail(email: string): Promise<string> {
     const messages = await this.getEmailMessages(email);
     const activationMessage = messages.find(
       message =>
@@ -43,20 +43,17 @@ export class EmailService {
         message.subject === '7-Eleven Card Email Confirmation'
     );
     if (!activationMessage) {
-      return false;
+      return null;
     }
     const activationMessageWithBody = await this.getEmailMessage(
       email,
       activationMessage.id
     );
-    const re = /href="(https:\/\/711-goodcall\.api\.tigerspike\.com\/link\/appredirect.*?)"/;
+    const re = /verificationCode=(.*?)"/;
     const matched = re.exec(activationMessageWithBody.body);
     if (matched && matched.length > 1) {
-      const response = await axios.get(matched[1]);
-      if (response.status === 200) {
-        return true;
-      }
+      return matched[1];
     }
-    return false;
+    return null;
   }
 }

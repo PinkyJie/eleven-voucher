@@ -22,11 +22,11 @@ export class LockInInput {
   @Field({ description: 'Liters', defaultValue: 150, nullable: true })
   liters?: number;
 
-  @Field({ description: 'The latitude of the store location' })
-  storeLatitude: number;
+  @Field({ description: 'The latitude of the device location' })
+  deviceLatitude: number;
 
-  @Field({ description: 'The longitude of the store location' })
-  storeLongitude: number;
+  @Field({ description: 'The longitude of the device location' })
+  deviceLongitude: number;
 
   @Field({ description: 'Device secret token' })
   deviceSecretToken: string;

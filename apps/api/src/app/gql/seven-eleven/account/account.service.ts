@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { AxiosResponse } from 'axios';
 
 import { request } from '../utils/request';
 import { DEVICE_NAME, ANDROID_VERSION } from '../utils/constant';
 
 import { Account } from './account.model';
 
-interface LoginResponse {
+interface LoginOrVerifyResponse {
   DeviceSecretToken: string;
   AccountId: string;
   FirstName: string;
@@ -14,6 +15,19 @@ interface LoginResponse {
 
 @Injectable()
 export class AccountService {
+  private transformLoginOrVerifyResponse(
+    response: AxiosResponse<LoginOrVerifyResponse>
+  ): Account {
+    const { DeviceSecretToken, AccountId, FirstName, Email } = response.data;
+    return {
+      id: AccountId,
+      firstName: FirstName,
+      email: Email,
+      deviceSecretToken: DeviceSecretToken,
+      accessToken: response.headers['x-accesstoken'],
+    };
+  }
+
   async login(email: string, password: string): Promise<Account> {
     const response = await request({
       url: 'account/login',
@@ -26,19 +40,7 @@ export class AccountService {
       },
     });
 
-    const {
-      DeviceSecretToken,
-      AccountId,
-      FirstName,
-      Email,
-    } = response.data as LoginResponse;
-    return {
-      id: AccountId,
-      firstName: FirstName,
-      email: Email,
-      deviceSecretToken: DeviceSecretToken,
-      accessToken: response.headers['x-accesstoken'],
-    };
+    return this.transformLoginOrVerifyResponse(response);
   }
 
   async logout(
@@ -79,5 +81,19 @@ export class AccountService {
     });
 
     return response.data === '';
+  }
+
+  async verify(verificationCode: string): Promise<Account> {
+    const response = await request({
+      url: 'account/verify',
+      method: 'POST',
+      data: {
+        VerificationCode: verificationCode,
+        DeviceName: DEVICE_NAME,
+        DeviceOsNameVersion: ANDROID_VERSION,
+      },
+    });
+
+    return this.transformLoginOrVerifyResponse(response);
   }
 }

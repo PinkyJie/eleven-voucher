@@ -52,6 +52,22 @@ interface LastUsedVoucherResponse {
 
 @Injectable()
 export class VoucherService {
+  private transformVoucherResponse(voucherResponse: VoucherResponse): Voucher {
+    return {
+      id: voucherResponse.Id,
+      status: voucherResponse.Status,
+      code: voucherResponse.CouponCode,
+      fuelType: fuelTypes.find(
+        type => type.value === voucherResponse.FuelGradeModel
+      ).label,
+      fuelPrice: voucherResponse.CentsPerLitre,
+      liters: voucherResponse.TotalLitres,
+      storeId: voucherResponse.StoreId,
+      createdAt: voucherResponse.CreatedAt,
+      expiredAt: voucherResponse.ExpiresAt,
+    };
+  }
+
   async getVouchers(
     deviceSecretToken: string,
     accessToken: string
@@ -64,36 +80,25 @@ export class VoucherService {
     });
 
     const vouchers = response.data as VoucherResponse[];
-    return vouchers.map(voucher => ({
-      id: voucher.Id,
-      status: voucher.Status,
-      code: voucher.CouponCode,
-      fuelType: fuelTypes.find(type => type.value === voucher.FuelGradeModel)
-        .label,
-      fuelPrice: voucher.CentsPerLitre,
-      liters: voucher.TotalLitres,
-      storeId: voucher.StoreId,
-      createdAt: voucher.CreatedAt,
-      expiredAt: voucher.ExpiresAt,
-    }));
+    return vouchers.map(this.transformVoucherResponse);
   }
 
   async lockInVoucher(
     accountId: string,
     fuelType: FuelType,
     liters: number,
-    storeLatitude: number,
-    storeLongitude: number,
+    deviceLatitude: number,
+    deviceLongitude: number,
     deviceSecretToken: string,
     accessToken: string
-  ): Promise<boolean> {
+  ): Promise<Voucher> {
     const startLockInResponse = await request({
       url: 'FuelLock/StartSession',
       method: 'POST',
       data: {
         LastStoreUpdateTimestamp: Math.floor(new Date().getTime() / 1000),
-        Latitude: String(storeLatitude),
-        Longitude: String(storeLongitude),
+        Latitude: String(deviceLatitude),
+        Longitude: String(deviceLongitude),
       },
       deviceSecretToken,
       accessToken,
@@ -114,11 +119,12 @@ export class VoucherService {
       });
 
       if (confirmLockInResponse.status === 201) {
-        // successful lock in will return VoucherResponse
-        return true;
+        return this.transformVoucherResponse(
+          confirmLockInResponse.data as VoucherResponse
+        );
       }
     }
-    return false;
+    return null;
   }
 
   async getLastRedeemedVoucher(

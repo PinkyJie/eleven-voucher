@@ -1,9 +1,9 @@
-import { Resolver, Args, Query, Mutation } from '@nestjs/graphql';
+import { Resolver, Args, Query } from '@nestjs/graphql';
 
 import { EmailMessage, EmailMessageWithBody } from './email.model';
 import { EmailService } from './email.service';
 
-@Resolver(() => EmailMessage)
+@Resolver()
 export class EmailResolver {
   constructor(private emailService: EmailService) {}
 
@@ -30,12 +30,13 @@ export class EmailResolver {
     return this.emailService.getEmailMessage(email, id);
   }
 
-  @Mutation(() => Boolean, {
-    description: 'Click the verification link in the email.',
+  @Query(() => String, {
+    description: 'Retrieve the verification code in the email.',
+    nullable: true,
   })
-  async clickVerificationLinkInEmail(
+  async findVerificationCodeInEmail(
     @Args('email') email: string
-  ): Promise<boolean> {
-    return this.emailService.clickVerificationLinkInEmail(email);
+  ): Promise<string> {
+    return this.emailService.findVerificationCodeInEmail(email);
   }
 }

@@ -5,5 +5,6 @@ import { FuelService } from './fuel.service';
 
 @Module({
   providers: [FuelResolver, FuelService],
+  exports: [FuelService],
 })
 export class FuelModule {}
