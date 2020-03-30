@@ -33,7 +33,7 @@ export class App extends Component {
         />
         <StyledHeader as="h2" icon>
           <Icon name="bolt" />
-          Eleven Locker
+          Eleven Voucher
           <Header.Subheader>
             Get your fuel voucher with just one-click.
           </Header.Subheader>

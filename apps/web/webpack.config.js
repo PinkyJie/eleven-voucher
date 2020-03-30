@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const webpackConfig = require('@nrwl/react/plugins/webpack');
 
 module.exports = config => {
