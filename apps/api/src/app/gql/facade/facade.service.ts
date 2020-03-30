@@ -9,6 +9,13 @@ import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
 
 import { AccountAndVoucher } from './facade.model';
 
+async function sleep(milliSeconds: number) {
+  const promise = new Promise(resolve => {
+    setTimeout(() => resolve, milliSeconds);
+  });
+  return promise;
+}
+
 @Injectable()
 export class FacadeService {
   constructor(
@@ -45,9 +52,19 @@ export class FacadeService {
     const { lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
 
     // 3. get verification code from email
-    const verificationCode = await this.emailService.findVerificationCodeInEmail(
-      email
-    );
+    // wait email to be arrived
+    let maxAttempt = 5;
+    let verificationCode = '';
+    while (maxAttempt--) {
+      verificationCode = await this.emailService.findVerificationCodeInEmail(
+        email
+      );
+      if (verificationCode) {
+        break;
+      }
+      await sleep(500);
+    }
+
     if (!verificationCode) {
       throw new Error('Email verification fail');
     }
