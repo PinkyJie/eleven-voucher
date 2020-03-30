@@ -88,7 +88,7 @@ export class FacadeService {
     const verifyResponse = await this.accountService.verify(verificationCode);
 
     console.log('4. Verify account - success');
-    console.log(verifyResponse);
+    console.log(`Account id: ${verifyResponse.id}`);
 
     // 5. lock in the price
     const lockInResponse = await this.voucherService.lockInVoucher(

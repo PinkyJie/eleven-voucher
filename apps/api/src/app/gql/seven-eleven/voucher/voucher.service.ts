@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { CONTEXT } from '@nestjs/graphql';
 
 import { request } from '../utils/request';
 import { FuelType } from '../fuel/fuel.model';
+import { GqlContext } from '../../gql.context';
 
 import { Voucher } from './voucher.model';
 
@@ -52,6 +54,8 @@ interface LastUsedVoucherResponse {
 
 @Injectable()
 export class VoucherService {
+  constructor(@Inject(CONTEXT) private readonly ctx: GqlContext) {}
+
   private transformVoucherResponse(voucherResponse: VoucherResponse): Voucher {
     return {
       id: voucherResponse.Id,
@@ -77,6 +81,7 @@ export class VoucherService {
       method: 'GET',
       deviceSecretToken,
       accessToken,
+      deviceId: this.ctx.deviceId,
     });
 
     const vouchers = response.data as VoucherResponse[];
@@ -102,6 +107,7 @@ export class VoucherService {
       },
       deviceSecretToken,
       accessToken,
+      deviceId: this.ctx.deviceId,
     });
     if (startLockInResponse.status === 200) {
       const confirmLockInResponse = await request({
@@ -116,6 +122,7 @@ export class VoucherService {
         },
         deviceSecretToken,
         accessToken,
+        deviceId: this.ctx.deviceId,
       });
 
       if (confirmLockInResponse.status === 201) {
@@ -137,6 +144,7 @@ export class VoucherService {
       method: 'GET',
       deviceSecretToken,
       accessToken,
+      deviceId: this.ctx.deviceId,
     });
     console.log(response.data);
     return true;

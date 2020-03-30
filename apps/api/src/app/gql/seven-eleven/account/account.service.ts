@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
+import { CONTEXT } from '@nestjs/graphql';
 
 import { request } from '../utils/request';
 import { DEVICE_NAME, ANDROID_VERSION } from '../utils/constant';
+import { GqlContext } from '../../gql.context';
 
 import { Account } from './account.model';
 
@@ -15,6 +17,8 @@ interface LoginOrVerifyResponse {
 
 @Injectable()
 export class AccountService {
+  constructor(@Inject(CONTEXT) private readonly ctx: GqlContext) {}
+
   private transformLoginOrVerifyResponse(
     response: AxiosResponse<LoginOrVerifyResponse>
   ): Account {
@@ -38,6 +42,7 @@ export class AccountService {
         DeviceName: DEVICE_NAME,
         DeviceOsNameVersion: ANDROID_VERSION,
       },
+      deviceId: this.ctx.deviceId,
     });
 
     return this.transformLoginOrVerifyResponse(response);
@@ -52,6 +57,7 @@ export class AccountService {
       method: 'POST',
       deviceSecretToken,
       accessToken,
+      deviceId: this.ctx.deviceId,
     });
 
     return response.data === '';
@@ -78,6 +84,7 @@ export class AccountService {
         OptInForPromotions: false,
         OptInForSms: false,
       },
+      deviceId: this.ctx.deviceId,
     });
 
     return response.data === '';
@@ -92,6 +99,7 @@ export class AccountService {
         DeviceName: DEVICE_NAME,
         DeviceOsNameVersion: ANDROID_VERSION,
       },
+      deviceId: this.ctx.deviceId,
     });
 
     return this.transformLoginOrVerifyResponse(response);
