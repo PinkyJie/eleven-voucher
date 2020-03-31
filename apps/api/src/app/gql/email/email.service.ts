@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import { EmailMessage, EmailMessageWithBody } from './email.model';
+
+const logger = new Logger('EmailService');
 
 @Injectable()
 export class EmailService {
@@ -16,6 +18,9 @@ export class EmailService {
         domain,
       },
     });
+    logger.log(`Get emails for: ${email}`);
+    logger.log(response.data);
+
     return response.data;
   }
 
@@ -32,6 +37,9 @@ export class EmailService {
         id,
       },
     });
+    logger.log(`Get single email: ${email} - ${id}`);
+    logger.log(response.data);
+
     return response.data;
   }
 
@@ -42,6 +50,8 @@ export class EmailService {
         message.from === 'donotreply@my7elevencard.com.au' &&
         message.subject === '7-Eleven Card Email Confirmation'
     );
+    logger.log('Find matched email:');
+    logger.log(activationMessage);
     if (!activationMessage) {
       return null;
     }
@@ -51,6 +61,8 @@ export class EmailService {
     );
     const re = /verificationCode=(.*?)"/;
     const matched = re.exec(activationMessageWithBody.body);
+    logger.log(`Try to match verification code: ${email}`);
+    logger.log(matched);
     if (matched && matched.length > 1) {
       return matched[1];
     }

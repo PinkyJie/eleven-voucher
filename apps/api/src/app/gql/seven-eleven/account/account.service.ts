@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { CONTEXT } from '@nestjs/graphql';
 
@@ -7,6 +7,8 @@ import { DEVICE_NAME, ANDROID_VERSION } from '../utils/constant';
 import { GqlContext } from '../../gql.context';
 
 import { Account } from './account.model';
+
+const logger = new Logger('AccountService');
 
 interface LoginOrVerifyResponse {
   DeviceSecretToken: string;
@@ -44,6 +46,8 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
+    logger.log(`Login with: ${email}`);
+    logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);
   }
@@ -59,6 +63,9 @@ export class AccountService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
+
+    logger.log('Logout:');
+    logger.log(response.data);
 
     return response.data === '';
   }
@@ -86,6 +93,8 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
+    logger.log(`Register with: ${email}`);
+    logger.log(response.data);
 
     return response.data === '';
   }
@@ -101,6 +110,9 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
+
+    logger.log(`Verify with: ${verificationCode}`);
+    logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);
   }

@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CONTEXT } from '@nestjs/graphql';
 
 import { request } from '../utils/request';
@@ -6,6 +6,8 @@ import { FuelType } from '../fuel/fuel.model';
 import { GqlContext } from '../../gql.context';
 
 import { Voucher } from './voucher.model';
+
+const logger = new Logger('VoucherService');
 
 const fuelTypes = [
   {
@@ -83,6 +85,8 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
+    logger.log('Get vouchers:');
+    logger.log(response.data);
 
     const vouchers = response.data as VoucherResponse[];
     return vouchers.map(this.transformVoucherResponse);
@@ -109,6 +113,8 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
+    logger.log('Start lock in:');
+    logger.log(startLockInResponse.data);
     if (startLockInResponse.status === 200) {
       const confirmLockInResponse = await request({
         url: 'FuelLock/Confirm',
@@ -124,6 +130,8 @@ export class VoucherService {
         accessToken,
         deviceId: this.ctx.deviceId,
       });
+      logger.log('Confirm lock in:');
+      logger.log(confirmLockInResponse.data);
 
       if (confirmLockInResponse.status === 201) {
         return this.transformVoucherResponse(
@@ -146,7 +154,9 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    console.log(response.data);
+    logger.log(`Get Last redeemed voucher: ${voucherId}`);
+    logger.log(response.data);
+
     return true;
   }
 }

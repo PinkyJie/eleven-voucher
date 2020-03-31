@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import faker from 'faker';
 
 import { EmailService } from '../email/email.service';
@@ -9,6 +9,8 @@ import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
 
 import { AccountAndVoucher } from './facade.model';
 
+const logger = new Logger('FacadeService');
+
 function multipleAttempts<T>(
   promise: Promise<T>,
   config: {
@@ -18,10 +20,10 @@ function multipleAttempts<T>(
   }
 ): Promise<T> {
   const { isResolveValueValid, attempt, interval } = config;
-  console.log(`Current attempt: ${attempt}`);
+  logger.log(`Current attempt: ${attempt}`);
   return new Promise(resolve => {
     promise.then(result => {
-      console.log(`Result: ${result}`);
+      logger.log(`Result: ${result}`);
       if (isResolveValueValid(result)) {
         resolve(result);
       } else {
@@ -54,7 +56,10 @@ export class FacadeService {
   async genAccountAndLockInVoucher(
     fuelType: FuelType
   ): Promise<AccountAndVoucher> {
-    const email = `${faker.internet.userName()}@1secmail.com`;
+    const availableEmail = ['@1secmail.net', '1secmail.com', '1secmail.org'];
+    const randomIdx = Math.floor(Math.random() * 3);
+
+    const email = `${faker.internet.userName()}${availableEmail[randomIdx]}`;
     const password = faker.internet.password();
     // 1. register a new account
     const registerResponse = await this.accountService.register(
@@ -72,25 +77,25 @@ export class FacadeService {
     if (registerResponse === false) {
       throw new Error('Registration fail');
     }
-    console.log('1. Account registration - success');
-    console.log(`Email: ${email}`);
-    console.log(`Password: ${password}`);
+    logger.log('1. Account registration - success');
+    logger.log(`Email: ${email}`);
+    logger.log(`Password: ${password}`);
 
     // 2. get best fuel price
     const fuelPriceResponse = await this.fuelService.getFuelPrices();
     const { price, lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
 
-    console.log('2. Get fuel price - success');
-    console.log(`Fuel type: ${fuelType}`);
-    console.log(`Price: ${price}`);
-    console.log(`Latitude: ${lat}`);
-    console.log(`Longitude: ${lng}`);
+    logger.log('2. Get fuel price - success');
+    logger.log(`Fuel type: ${fuelType}`);
+    logger.log(`Price: ${price}`);
+    logger.log(`Latitude: ${lat}`);
+    logger.log(`Longitude: ${lng}`);
 
     // 3. get verification code from email
     // wait email to be arrived
-    console.log('3. Get verification code');
+    logger.log('3. Get verification code');
     const maxAttempts = 10;
-    console.log(`Max attempts: ${maxAttempts}`);
+    logger.log(`Max attempts: ${maxAttempts}`);
     const verificationCode = await multipleAttempts<string>(
       this.emailService.findVerificationCodeInEmail(email),
       {
@@ -107,8 +112,8 @@ export class FacadeService {
     // 4. verify account
     const verifyResponse = await this.accountService.verify(verificationCode);
 
-    console.log('4. Verify account - success');
-    console.log(`Account id: ${verifyResponse.id}`);
+    logger.log('4. Verify account - success');
+    logger.log(`Account id: ${verifyResponse.id}`);
 
     // 5. lock in the price
     const lockInResponse = await this.voucherService.lockInVoucher(
@@ -124,8 +129,8 @@ export class FacadeService {
       throw new Error('Lock in fail');
     }
 
-    console.log('5. Lock in voucher - success');
-    console.log(`Voucher code: ${lockInResponse.code}`);
+    logger.log('5. Lock in voucher - success');
+    logger.log(`Voucher code: ${lockInResponse.code}`);
 
     return {
       account: {

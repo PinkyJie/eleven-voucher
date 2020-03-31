@@ -7,8 +7,11 @@ import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 import * as functions from 'firebase-functions';
+import { Logger } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
+
+const logger = new Logger('Main');
 
 const server = express();
 
@@ -28,7 +31,7 @@ export const createNestServer = async expressInstance => {
 };
 
 createNestServer(server)
-  .then(() => console.log('Nest is ready!'))
-  .catch(err => console.error('Nest is broken!', err));
+  .then(() => logger.log('Nest is ready!'))
+  .catch(err => logger.error('Nest is broken!', err));
 
 export const api = functions.https.onRequest(server);
