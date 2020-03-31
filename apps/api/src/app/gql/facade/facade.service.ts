@@ -9,11 +9,37 @@ import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
 
 import { AccountAndVoucher } from './facade.model';
 
-async function sleep(milliSeconds: number) {
-  const promise = new Promise(resolve => {
-    setTimeout(() => resolve, milliSeconds);
+function multipleAttempts<T>(
+  promise: Promise<T>,
+  config: {
+    isResolveValueValid: (result: T) => boolean;
+    attempt: number;
+    interval: number;
+  }
+): Promise<T> {
+  const { isResolveValueValid, attempt, interval } = config;
+  console.log(`Current attempt: ${attempt}`);
+  return new Promise(resolve => {
+    promise.then(result => {
+      console.log(`Result: ${result}`);
+      if (isResolveValueValid(result)) {
+        resolve(result);
+      } else {
+        const attemptsLeft = attempt - 1;
+        if (attemptsLeft === 0) {
+          resolve();
+        } else {
+          setTimeout(() => {
+            multipleAttempts<T>(promise, {
+              isResolveValueValid,
+              interval,
+              attempt: attemptsLeft,
+            }).then(resolve);
+          }, interval);
+        }
+      }
+    });
   });
-  return promise;
 }
 
 @Injectable()
@@ -63,22 +89,16 @@ export class FacadeService {
     // 3. get verification code from email
     // wait email to be arrived
     console.log('3. Get verification code');
-    let maxAttempts = 5;
+    const maxAttempts = 5;
     console.log(`Max attempts: ${maxAttempts}`);
-    let verificationCode = '';
-    while (maxAttempts > 0) {
-      console.log(`Attempt: ${maxAttempts - 5}`);
-      verificationCode = await this.emailService.findVerificationCodeInEmail(
-        email
-      );
-      console.log(`Verification code: ${verificationCode}`);
-      if (verificationCode) {
-        break;
+    const verificationCode = await multipleAttempts<string>(
+      this.emailService.findVerificationCodeInEmail(email),
+      {
+        isResolveValueValid: result => !!result,
+        attempt: maxAttempts,
+        interval: 500,
       }
-      console.log(`Wait for 500ms before next attempt`);
-      await sleep(500);
-      maxAttempts--;
-    }
+    );
 
     if (!verificationCode) {
       throw new Error('Get verification code fail');
