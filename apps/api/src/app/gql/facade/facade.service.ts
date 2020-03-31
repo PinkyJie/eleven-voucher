@@ -6,13 +6,14 @@ import { AccountService } from '../seven-eleven/account/account.service';
 import { FuelService } from '../seven-eleven/fuel/fuel.service';
 import { VoucherService } from '../seven-eleven/voucher/voucher.service';
 import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
+import { DbService } from '../../db/db.service';
 
 import { AccountAndVoucher } from './facade.model';
 
 const logger = new Logger('FacadeService');
 
 function multipleAttempts<T>(
-  promise: Promise<T>,
+  promiseGenerator: () => Promise<T>,
   config: {
     isResolveValueValid: (result: T) => boolean;
     attempt: number;
@@ -22,7 +23,7 @@ function multipleAttempts<T>(
   const { isResolveValueValid, attempt, interval } = config;
   logger.log(`Current attempt: ${attempt}`);
   return new Promise(resolve => {
-    promise.then(result => {
+    promiseGenerator().then(result => {
       logger.log(`Result: ${result}`);
       if (isResolveValueValid(result)) {
         resolve(result);
@@ -32,7 +33,7 @@ function multipleAttempts<T>(
           resolve();
         } else {
           setTimeout(() => {
-            multipleAttempts<T>(promise, {
+            multipleAttempts<T>(promiseGenerator, {
               isResolveValueValid,
               interval,
               attempt: attemptsLeft,
@@ -104,7 +105,7 @@ export class FacadeService {
     const maxAttempts = 10;
     logger.log(`Max attempts: ${maxAttempts}`);
     const verificationCode = await multipleAttempts<string>(
-      this.emailService.findVerificationCodeInEmail(email),
+      () => this.emailService.findVerificationCodeInEmail(email),
       {
         isResolveValueValid: result => !!result,
         attempt: maxAttempts,
