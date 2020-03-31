@@ -78,20 +78,23 @@ export class AccountService {
     phone: string,
     dobTimestamp: string
   ): Promise<boolean> {
-    logger.log(`Register with: ${email}`);
+    logger.log(`Register new account:`);
+    const data = {
+      EmailAddress: email,
+      FirstName: firstName,
+      Surname: lastName,
+      Password: password,
+      PhoneNumber: phone,
+      DobSinceEpoch: dobTimestamp,
+      OptInForPromotions: false,
+      OptInForSms: false,
+    };
+    logger.log(data);
+    logger.log(this.ctx.deviceId);
     const response = await request({
       url: 'account/register',
       method: 'POST',
-      data: {
-        EmailAddress: email,
-        FirstName: firstName,
-        Surname: lastName,
-        Password: password,
-        PhoneNumber: phone,
-        DobSinceEpoch: dobTimestamp,
-        OptInForPromotions: false,
-        OptInForSms: false,
-      },
+      data,
       deviceId: this.ctx.deviceId,
     });
     logger.log(response.data);
