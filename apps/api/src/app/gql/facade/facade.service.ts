@@ -44,6 +44,13 @@ function multipleAttempts<T>(
   });
 }
 
+function getPhoneNumber() {
+  const phoneNumber = faker.phone.phoneNumberFormat();
+  const phoneArr = phoneNumber.replace(/ /g, '').split('');
+  phoneArr.splice(1, 1, '4');
+  return phoneArr.join('');
+}
+
 @Injectable()
 export class FacadeService {
   constructor(
@@ -59,15 +66,17 @@ export class FacadeService {
     const availableEmail = ['@1secmail.net', '1secmail.com', '1secmail.org'];
     const randomIdx = Math.floor(Math.random() * 3);
 
+    faker.locale = 'en_AU';
     const email = `${faker.internet.userName()}${availableEmail[randomIdx]}`;
     const password = faker.internet.password();
     // 1. register a new account
+    logger.log('1. Account registration');
     const registerResponse = await this.accountService.register(
       email,
       password,
       faker.name.firstName(),
       faker.name.lastName(),
-      '0491570156',
+      getPhoneNumber(),
       Math.floor(
         faker.date
           .between(new Date(1980, 1, 1), new Date(1995, 1, 1))
@@ -77,15 +86,13 @@ export class FacadeService {
     if (registerResponse === false) {
       throw new Error('Registration fail');
     }
-    logger.log('1. Account registration - success');
     logger.log(`Email: ${email}`);
     logger.log(`Password: ${password}`);
 
     // 2. get best fuel price
+    logger.log('2. Get fuel price');
     const fuelPriceResponse = await this.fuelService.getFuelPrices();
     const { price, lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
-
-    logger.log('2. Get fuel price - success');
     logger.log(`Fuel type: ${fuelType}`);
     logger.log(`Price: ${price}`);
     logger.log(`Latitude: ${lat}`);
@@ -110,12 +117,12 @@ export class FacadeService {
     }
 
     // 4. verify account
+    logger.log('4. Verify account');
     const verifyResponse = await this.accountService.verify(verificationCode);
-
-    logger.log('4. Verify account - success');
     logger.log(`Account id: ${verifyResponse.id}`);
 
     // 5. lock in the price
+    logger.log('5. Lock in voucher');
     const lockInResponse = await this.voucherService.lockInVoucher(
       verifyResponse.id,
       fuelType,
@@ -129,7 +136,6 @@ export class FacadeService {
       throw new Error('Lock in fail');
     }
 
-    logger.log('5. Lock in voucher - success');
     logger.log(`Voucher code: ${lockInResponse.code}`);
 
     return {

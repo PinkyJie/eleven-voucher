@@ -35,6 +35,7 @@ export class AccountService {
   }
 
   async login(email: string, password: string): Promise<Account> {
+    logger.log(`Login with: ${email}`);
     const response = await request({
       url: 'account/login',
       method: 'POST',
@@ -46,7 +47,6 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
-    logger.log(`Login with: ${email}`);
     logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);
@@ -56,6 +56,7 @@ export class AccountService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<boolean> {
+    logger.log('Logout:');
     const response = await request({
       url: 'account/logout',
       method: 'POST',
@@ -64,7 +65,6 @@ export class AccountService {
       deviceId: this.ctx.deviceId,
     });
 
-    logger.log('Logout:');
     logger.log(response.data);
 
     return response.data === '';
@@ -78,6 +78,7 @@ export class AccountService {
     phone: string,
     dobTimestamp: string
   ): Promise<boolean> {
+    logger.log(`Register with: ${email}`);
     const response = await request({
       url: 'account/register',
       method: 'POST',
@@ -93,13 +94,13 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
-    logger.log(`Register with: ${email}`);
     logger.log(response.data);
 
     return response.data === '';
   }
 
   async verify(verificationCode: string): Promise<Account> {
+    logger.log(`Verify with: ${verificationCode}`);
     const response = await request({
       url: 'account/verify',
       method: 'POST',
@@ -111,7 +112,6 @@ export class AccountService {
       deviceId: this.ctx.deviceId,
     });
 
-    logger.log(`Verify with: ${verificationCode}`);
     logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);

@@ -78,6 +78,7 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<Voucher[]> {
+    logger.log('Get vouchers:');
     const response = await request({
       url: 'FuelLock/List',
       method: 'GET',
@@ -85,7 +86,6 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log('Get vouchers:');
     logger.log(response.data);
 
     const vouchers = response.data as VoucherResponse[];
@@ -101,6 +101,7 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<Voucher> {
+    logger.log('Start lock in:');
     const startLockInResponse = await request({
       url: 'FuelLock/StartSession',
       method: 'POST',
@@ -113,9 +114,9 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log('Start lock in:');
     logger.log(startLockInResponse.data);
     if (startLockInResponse.status === 200) {
+      logger.log('Confirm lock in:');
       const confirmLockInResponse = await request({
         url: 'FuelLock/Confirm',
         method: 'POST',
@@ -130,7 +131,6 @@ export class VoucherService {
         accessToken,
         deviceId: this.ctx.deviceId,
       });
-      logger.log('Confirm lock in:');
       logger.log(confirmLockInResponse.data);
 
       if (confirmLockInResponse.status === 201) {
@@ -147,6 +147,7 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<boolean> {
+    logger.log(`Get Last redeemed voucher: ${voucherId}`);
     const response = await request({
       url: `FuelLock/Refresh?fuelLockId=${voucherId}`,
       method: 'GET',
@@ -154,7 +155,6 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log(`Get Last redeemed voucher: ${voucherId}`);
     logger.log(response.data);
 
     return true;

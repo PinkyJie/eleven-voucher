@@ -10,6 +10,7 @@ export class EmailService {
   private url = 'https://www.1secmail.com/api/v1/';
 
   async getEmailMessages(email: string): Promise<EmailMessage[]> {
+    logger.log(`Get emails for: ${email}`);
     const [login, domain] = email.split('@');
     const response = await axios.get(this.url, {
       params: {
@@ -18,7 +19,6 @@ export class EmailService {
         domain,
       },
     });
-    logger.log(`Get emails for: ${email}`);
     logger.log(response.data);
 
     return response.data;
@@ -28,6 +28,7 @@ export class EmailService {
     email: string,
     id: number
   ): Promise<EmailMessageWithBody> {
+    logger.log(`Get single email: ${email} - ${id}`);
     const [login, domain] = email.split('@');
     const response = await axios.get(this.url, {
       params: {
@@ -37,7 +38,6 @@ export class EmailService {
         id,
       },
     });
-    logger.log(`Get single email: ${email} - ${id}`);
     logger.log(response.data);
 
     return response.data;
