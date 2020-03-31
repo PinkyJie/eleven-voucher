@@ -6,7 +6,6 @@ import { AccountService } from '../seven-eleven/account/account.service';
 import { FuelService } from '../seven-eleven/fuel/fuel.service';
 import { VoucherService } from '../seven-eleven/voucher/voucher.service';
 import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
-import { DbService } from '../../db/db.service';
 
 import { AccountAndVoucher } from './facade.model';
 
