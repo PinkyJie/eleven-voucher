@@ -89,14 +89,14 @@ export class FacadeService {
     // 3. get verification code from email
     // wait email to be arrived
     console.log('3. Get verification code');
-    const maxAttempts = 5;
+    const maxAttempts = 10;
     console.log(`Max attempts: ${maxAttempts}`);
     const verificationCode = await multipleAttempts<string>(
       this.emailService.findVerificationCodeInEmail(email),
       {
         isResolveValueValid: result => !!result,
         attempt: maxAttempts,
-        interval: 500,
+        interval: 2000,
       }
     );
 
