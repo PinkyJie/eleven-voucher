@@ -1,5 +1,5 @@
 {
-  "npmScope": "eleven-locker",
+  "npmScope": "eleven-voucher",
   "implicitDependencies": {
     "workspace.json": "*",
     "package.json": {

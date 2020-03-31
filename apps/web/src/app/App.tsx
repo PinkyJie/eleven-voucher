@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled from '@emotion/styled';
 import { Global, css } from '@emotion/core';
 import { Route } from 'react-router-dom';
-import { Header, Icon } from 'semantic-ui-react';
+import { Header, Image } from 'semantic-ui-react';
 
 import { FuelList, FuelDetail } from './components';
 import { FuelPriceContextProvider } from './context';
@@ -15,6 +15,10 @@ const StyledApp = styled.div`
 
 const StyledHeader = styled(Header)`
   display: block !important;
+`;
+
+const StyledMain = styled.main`
+  padding: 2em;
 `;
 
 export class App extends Component {
@@ -31,22 +35,22 @@ export class App extends Component {
             }
           `}
         />
+        <Image src="/assets/fuel.png" size="small" centered />
         <StyledHeader as="h2" icon>
-          <Icon name="bolt" />
           Eleven Voucher
           <Header.Subheader>
             Get your fuel voucher with just one-click.
           </Header.Subheader>
         </StyledHeader>
         <FuelPriceContextProvider>
-          <main>
+          <StyledMain>
             <Route path="/" exact>
               <FuelList />
             </Route>
             <Route path="/fuel/:fuelType" exact>
               <FuelDetail />
             </Route>
-          </main>
+          </StyledMain>
         </FuelPriceContextProvider>
       </StyledApp>
     );
