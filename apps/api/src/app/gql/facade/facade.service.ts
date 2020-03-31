@@ -63,7 +63,7 @@ export class FacadeService {
   async genAccountAndLockInVoucher(
     fuelType: FuelType
   ): Promise<AccountAndVoucher> {
-    const availableEmail = ['@1secmail.net', '1secmail.com', '1secmail.org'];
+    const availableEmail = ['@1secmail.net', '@1secmail.com', '@1secmail.org'];
     const randomIdx = Math.floor(Math.random() * 3);
 
     faker.locale = 'en_AU';
