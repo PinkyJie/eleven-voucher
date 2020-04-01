@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { Card, Button, Image } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { formatDistance } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 import { FuelType } from '../../../../../generated/generated';
 
@@ -56,8 +56,6 @@ export const FuelListItem = ({
     },
   };
 
-  const now = new Date();
-
   return (
     <StyledCard>
       <Image src={fuelMap[type].image} wrapped ui={false} />
@@ -66,7 +64,7 @@ export const FuelListItem = ({
           {fuelMap[type].title} - ${price} c/L
         </Card.Header>
         <Card.Meta textAlign="center">
-          Updated {formatDistance(updated, now)} ago
+          Updated {formatDistanceToNow(updated)} ago
         </Card.Meta>
         <Card.Meta textAlign="center">{storeName}</Card.Meta>
       </Card.Content>

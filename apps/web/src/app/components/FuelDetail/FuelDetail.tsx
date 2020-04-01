@@ -5,14 +5,16 @@ import {
   Segment,
   Loader,
   Dimmer,
-  Image,
   Button,
   Message,
   Icon,
   Label,
+  Modal,
+  Placeholder,
 } from 'semantic-ui-react';
 import { useMutation } from '@apollo/client';
 import bwipjs from 'bwip-js';
+import { format } from 'date-fns';
 
 import {
   FuelType,
@@ -27,12 +29,8 @@ const StyledFuelDetail = styled.div`
   margin: 1em 0;
 `;
 
-const StyledImage = styled(Image)`
-  margin: 0 auto;
-`;
-
-const StyledLabel = styled(Label)`
-  margin-left: 5px !important;
+const StyledCanvas = styled.canvas`
+  max-width: 100%;
 `;
 
 export interface FuelDetailRouterParams {
@@ -56,7 +54,7 @@ export const FuelDetail = () => {
   const { prices } = useContext(FuelPriceContext);
   const fuelType = convertRouterParamsToFuelType(fuelTypeInRouter);
 
-  const [getMeAVoucher, { data, loading }] = useMutation<
+  const [getMeAVoucher, { data, loading, error }] = useMutation<
     GenAccountAndLockInVoucherMutation,
     GenAccountAndLockInVoucherMutationVariables
   >(GEN_ACCOUNT_AND_LOCK_IN_VOUCHER_MUTATION);
@@ -84,45 +82,100 @@ export const FuelDetail = () => {
   }, [data]);
 
   const invalidFuelMessage = (
-    <Message icon negative>
+    <Message icon negative attached>
       <Icon name="question circle" />
       <Message.Content>
         <Message.Header>Tesla owner?</Message.Header>
-        We can't find the fuel type you are looking for:
-        <StyledLabel color="teal" horizontal>
+        We can't find the fuel type you are looking for: &nbsp;
+        <Label color="teal" horizontal>
           {fuelTypeInRouter}
-        </StyledLabel>
+        </Label>
       </Message.Content>
     </Message>
   );
 
   const loadingMessage = fuelType && (
-    <Message icon info>
+    <Message icon info attached>
       <Icon name="circle notched" loading />
       <Message.Content>
         <Message.Header>Hang in there</Message.Header>
-        We are trying to get a voucher of
-        <StyledLabel color="teal" horizontal>
+        We are trying to get a voucher of &nbsp;
+        <Label color="teal" horizontal>
           {fuelType} - ${prices[fuelType].price} c/L
-        </StyledLabel>
+        </Label>
         for you.
       </Message.Content>
     </Message>
   );
 
   const loadingSegment = (
-    <Segment raised>
+    <Segment attached>
       <Dimmer active inverted>
         <Loader size="small">Loading</Loader>
       </Dimmer>
-      <StyledImage src="/assets/placeholder.png" size="small" />
+      <Placeholder style={{ height: '100%', width: '100%' }}>
+        <Placeholder.Image />
+      </Placeholder>
     </Segment>
   );
 
-  const voucherSegment = (
-    <Segment raised textAlign="center">
-      <canvas id="code"></canvas>
+  const voucherMessage = data && (
+    <Message icon info attached>
+      <Icon name="barcode" />
+      <Message.Content>
+        <Message.Header>Got you covered</Message.Header>
+        Enjoy your voucher for &nbsp;
+        <Label color="teal" horizontal>
+          {fuelType} - ${prices[fuelType].price} c/L
+        </Label>
+        before &nbsp;
+        <Label color="teal" horizontal>
+          {format(
+            new Date(data.genAccountAndLockInVoucher.voucher?.expiredAt * 1000),
+            'do MMMM yyyy'
+          )}
+        </Label>
+      </Message.Content>
+    </Message>
+  );
+
+  const voucherSegment = data && (
+    <Segment attached textAlign="center">
+      <StyledCanvas id="code" />
     </Segment>
+  );
+
+  const accountInfo = data && (
+    <Message attached="bottom" warning>
+      <Icon name="help" />
+      Not working? &nbsp;
+      <Modal
+        trigger={
+          <Button basic compact>
+            Show me the account instead
+          </Button>
+        }
+        size="mini"
+      >
+        <Modal.Header>Account</Modal.Header>
+        <Modal.Content image>
+          <Modal.Description>
+            <p> {data.genAccountAndLockInVoucher?.account?.email}</p>
+            <p>{data.genAccountAndLockInVoucher?.account?.password}</p>
+          </Modal.Description>
+        </Modal.Content>
+      </Modal>
+    </Message>
+  );
+
+  const errorMessage = error && (
+    <Message icon negative attached>
+      <Icon name="ban" />
+      <Message.Content>
+        <Message.Header>Something's wrong</Message.Header>
+        Sorry, please go back and try again later.
+      </Message.Content>
+    </Message>
   );
 
   return (
@@ -141,7 +194,12 @@ export const FuelDetail = () => {
             {loadingSegment}
           </>
         ) : (
-          voucherSegment
+          <>
+            {errorMessage}
+            {voucherMessage}
+            {voucherSegment}
+            {accountInfo}
+          </>
         )
       ) : (
         invalidFuelMessage
