@@ -1,4 +1,4 @@
-import { Resolver, Args, Query, Mutation } from '@nestjs/graphql';
+import { Resolver, Args, Mutation } from '@nestjs/graphql';
 
 import { FuelType } from '../seven-eleven/fuel/fuel.model';
 

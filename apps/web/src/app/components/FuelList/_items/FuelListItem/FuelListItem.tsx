@@ -66,7 +66,7 @@ export const FuelListItem = ({
           {fuelMap[type].title} - ${price} c/L
         </Card.Header>
         <Card.Meta textAlign="center">
-          Updated at {formatDistance(updated, now)}
+          Updated {formatDistance(updated, now)} ago
         </Card.Meta>
         <Card.Meta textAlign="center">{storeName}</Card.Meta>
       </Card.Content>

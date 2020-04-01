@@ -90,7 +90,7 @@ export class AccountService {
       OptInForSms: false,
     };
     logger.log(data);
-    logger.log(this.ctx.deviceId);
+    logger.log(`Device ID: ${this.ctx.deviceId}`);
     const response = await request({
       url: 'account/register',
       method: 'POST',
