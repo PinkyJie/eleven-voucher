@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import faker from 'faker';
+import { format } from 'date-fns';
 
 import { EmailService } from '../email/email.service';
 import { AccountService } from '../seven-eleven/account/account.service';
 import { FuelService } from '../seven-eleven/fuel/fuel.service';
 import { VoucherService } from '../seven-eleven/voucher/voucher.service';
 import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
+import { DbService } from '../../db/db.service';
 
 import { AccountAndVoucher } from './facade.model';
 
@@ -57,42 +59,55 @@ export class FacadeService {
     private emailService: EmailService,
     private accountService: AccountService,
     private fuelService: FuelService,
-    private voucherService: VoucherService
+    private voucherService: VoucherService,
+    private dbService: DbService
   ) {}
 
-  async genAccountAndLockInVoucher(
-    fuelType: FuelType
-  ): Promise<AccountAndVoucher> {
+  private async registerAccount() {
     const availableEmail = ['@1secmail.net', '@1secmail.com', '@1secmail.org'];
     const randomIdx = Math.floor(Math.random() * 3);
 
     faker.locale = 'en_AU';
     const email = `${faker.internet.userName()}${availableEmail[randomIdx]}`;
     const password = faker.internet.password();
-    // 1. register a new account
-    logger.log('1. Account registration');
-    const registerResponse = await this.accountService.register(
+    const accountData = {
       email,
       password,
-      faker.name.firstName(),
-      faker.name.lastName(),
-      getPhoneNumber(),
-      Math.floor(
-        faker.date
-          .between(new Date(1980, 1, 1), new Date(1995, 1, 1))
-          .getTime() / 1000
-      ).toString()
+      firstName: faker.name.firstName(),
+      lastName: faker.name.lastName(),
+      phone: getPhoneNumber(),
+      dob: faker.date.between(new Date(1980, 1, 1), new Date(1995, 1, 1)),
+    };
+
+    const registerResponse = await this.accountService.register(
+      accountData.email,
+      accountData.password,
+      accountData.firstName,
+      accountData.lastName,
+      accountData.phone,
+      Math.floor(accountData.dob.getTime() / 1000).toString()
     );
+
     if (registerResponse === false) {
       throw new Error('Registration fail');
     }
-    logger.log(`Email: ${email}`);
-    logger.log(`Password: ${password}`);
+
+    return accountData;
+  }
+
+  async genAccountAndLockInVoucher(
+    fuelType: FuelType
+  ): Promise<AccountAndVoucher> {
+    // 1. register a new account
+    logger.log('1. Account registration');
+    const accountData = await this.registerAccount();
+    logger.log(`Email: ${accountData.email}`);
+    logger.log(`Password: ${accountData.password}`);
 
     // 2. get best fuel price
     logger.log('2. Get fuel price');
-    const fuelPriceResponse = await this.fuelService.getFuelPrices();
-    const { price, lat, lng } = fuelPriceResponse[fuelType] as FuelPrice;
+    const fuelPrices = await this.fuelService.getFuelPrices();
+    const { price, lat, lng } = fuelPrices[fuelType] as FuelPrice;
     logger.log(`Fuel type: ${fuelType}`);
     logger.log(`Price: ${price}`);
     logger.log(`Latitude: ${lat}`);
@@ -104,7 +119,7 @@ export class FacadeService {
     const maxAttempts = 10;
     logger.log(`Max attempts: ${maxAttempts}`);
     const verificationCode = await multipleAttempts<string>(
-      () => this.emailService.findVerificationCodeInEmail(email),
+      () => this.emailService.findVerificationCodeInEmail(accountData.email),
       {
         isResolveValueValid: result => !!result,
         attempt: maxAttempts,
@@ -121,9 +136,19 @@ export class FacadeService {
     const verifyResponse = await this.accountService.verify(verificationCode);
     logger.log(`Account id: ${verifyResponse.id}`);
 
+    this.dbService.addNewUser({
+      email: accountData.email,
+      password: accountData.password,
+      firstName: accountData.firstName,
+      lastName: accountData.lastName,
+      phone: accountData.phone,
+      dob: format(accountData.dob, 'yyyy-MM-dd'),
+      fuelType,
+    });
+
     // 5. lock in the price
     logger.log('5. Lock in voucher');
-    const lockInResponse = await this.voucherService.lockInVoucher(
+    const voucher = await this.voucherService.lockInVoucher(
       verifyResponse.id,
       fuelType,
       150,
@@ -132,18 +157,22 @@ export class FacadeService {
       verifyResponse.deviceSecretToken,
       verifyResponse.accessToken
     );
-    if (!lockInResponse) {
+    if (!voucher) {
       throw new Error('Lock in fail');
     }
+    logger.log(`Voucher code: ${voucher.code}`);
 
-    logger.log(`Voucher code: ${lockInResponse.code}`);
+    this.dbService.addNewVoucher({
+      ...voucher,
+      email: accountData.email,
+    });
 
     return {
       account: {
-        email,
-        password,
+        email: accountData.email,
+        password: accountData.password,
       },
-      voucher: lockInResponse,
+      voucher,
     };
   }
 }
