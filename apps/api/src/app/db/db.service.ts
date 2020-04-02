@@ -56,9 +56,9 @@ export class DbService {
     await voucherRef.add({ ...voucher, timestamp: this.getServerTimestamp() });
   }
 
-  async getVouchersWithinOneWeek() {
+  async getVouchersForYesterday() {
     const voucherRef = this.db.collection('vouchers');
-    const weekAgo = subDays(new Date(), 8);
+    const weekAgo = subDays(new Date(), 1);
     return voucherRef
       .where('createdAt', '>', Math.floor(weekAgo.getTime() / 1000))
       .get();

@@ -185,8 +185,8 @@ export class FacadeService {
 
   async refreshAllVouchers(): Promise<boolean> {
     // 1. Get all vouchers
-    logger.log('Get all vouchers created within last week: ');
-    const vouchersSnapshot = await this.dbService.getVouchersWithinOneWeek();
+    logger.log('Get all vouchers created yesterday: ');
+    const vouchersSnapshot = await this.dbService.getVouchersForYesterday();
     // 2. Refresh voucher status
     logger.log('Start refreshing all voucher status:');
     vouchersSnapshot.docs.forEach(async voucher => {
