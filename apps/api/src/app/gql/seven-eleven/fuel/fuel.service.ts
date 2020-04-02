@@ -49,12 +49,12 @@ export class FuelService {
     }, {} as Fuel);
 
     Object.keys(fuelPrices).forEach(async (fuelType: FuelType) => {
-      const latestRecordRef = await this.dbService.getLatestFuelPriceRecord(
+      const fuelPriceSnapshot = await this.dbService.getLatestFuelPriceRecord(
         fuelType
       );
       if (
-        latestRecordRef.docs.length === 0 ||
-        latestRecordRef.docs[0].get('updatedTime') < updated
+        fuelPriceSnapshot.docs.length === 0 ||
+        fuelPriceSnapshot.docs[0].get('updatedTime') < updated
       ) {
         await this.dbService.addNewFuelPrice({
           fuelType,

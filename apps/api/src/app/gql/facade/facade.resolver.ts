@@ -17,4 +17,11 @@ export class FacadeResolver {
   ): Promise<AccountAndVoucher> {
     return this.facadeService.genAccountAndLockInVoucher(fuelType as FuelType);
   }
+
+  @Mutation(() => Boolean, {
+    description: 'Refresh all voucher status.',
+  })
+  async refreshAllVouchers(): Promise<boolean> {
+    return this.facadeService.refreshAllVouchers();
+  }
 }

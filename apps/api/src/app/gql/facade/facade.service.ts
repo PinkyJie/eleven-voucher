@@ -167,6 +167,13 @@ export class FacadeService {
       email: accountData.email,
     });
 
+    // 6. logout
+    logger.log('6. Logout');
+    await this.accountService.logout(
+      verifyResponse.deviceSecretToken,
+      verifyResponse.accessToken
+    );
+
     return {
       account: {
         email: accountData.email,
@@ -174,5 +181,47 @@ export class FacadeService {
       },
       voucher,
     };
+  }
+
+  async refreshAllVouchers(): Promise<boolean> {
+    // 1. Get all vouchers
+    logger.log('Get all vouchers created within last week: ');
+    const vouchersSnapshot = await this.dbService.getVouchersWithinOneWeek();
+    // 2. Refresh voucher status
+    logger.log('Start refreshing all voucher status:');
+    vouchersSnapshot.docs.forEach(async voucher => {
+      const voucherId = voucher.get('id');
+      const voucherStatus = voucher.get('status');
+      logger.log(`Refresh voucher: ${voucherId}`);
+      logger.log(`Existing status: ${voucherStatus}`);
+      const email = voucher.get('email');
+      // get account
+      logger.log(`Get account info for: ${email}`);
+      const userSnapshot = await this.dbService.getUserByEmail(email);
+      const password = userSnapshot.docs[0].get('password');
+      // login account
+      logger.log(`Start login: ${email}`);
+      const {
+        deviceSecretToken,
+        accessToken,
+      } = await this.accountService.login(email, password);
+      // refresh voucher
+      const refreshedVoucher = await this.voucherService.getRefreshedVoucher(
+        voucherId,
+        deviceSecretToken,
+        accessToken
+      );
+      logger.log(`New status: ${refreshedVoucher.status}`);
+      if (refreshedVoucher.status !== voucherStatus) {
+        logger.log(`Update status to: ${refreshedVoucher.status}`);
+        await voucher.ref.set({ status: refreshedVoucher });
+      } else {
+        logger.log('No status update required');
+      }
+      // logout account
+      logger.log(`Start logout: ${email}`);
+      await this.accountService.logout(deviceSecretToken, accessToken);
+    });
+    return true;
   }
 }

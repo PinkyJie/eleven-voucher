@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import admin from 'firebase-admin';
+import { subDays } from 'date-fns';
 
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
 
@@ -53,5 +54,21 @@ export class DbService {
     logger.log('Add new voucher to DB:');
     logger.log(voucher);
     await voucherRef.add({ ...voucher, timestamp: this.getServerTimestamp() });
+  }
+
+  async getVouchersWithinOneWeek() {
+    const voucherRef = this.db.collection('vouchers');
+    const weekAgo = subDays(new Date(), 8);
+    return voucherRef
+      .where('createdAt', '>', Math.floor(weekAgo.getTime() / 1000))
+      .get();
+  }
+
+  async getUserByEmail(email: string) {
+    const userRef = this.db.collection('users');
+    return userRef
+      .where('email', '==', email)
+      .limit(1)
+      .get();
   }
 }

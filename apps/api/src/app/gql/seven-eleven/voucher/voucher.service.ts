@@ -142,12 +142,12 @@ export class VoucherService {
     return null;
   }
 
-  async getLastRedeemedVoucher(
+  async getRefreshedVoucher(
     voucherId: string,
     deviceSecretToken: string,
     accessToken: string
-  ): Promise<boolean> {
-    logger.log(`Get Last redeemed voucher: ${voucherId}`);
+  ): Promise<Voucher> {
+    logger.log(`Refresh voucher: ${voucherId}`);
     const response = await request({
       url: `FuelLock/Refresh?fuelLockId=${voucherId}`,
       method: 'GET',
@@ -157,6 +157,6 @@ export class VoucherService {
     });
     logger.log(response.data);
 
-    return true;
+    return this.transformVoucherResponse(response.data as VoucherResponse);
   }
 }

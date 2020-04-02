@@ -20,16 +20,16 @@ export class VoucherResolver {
     return this.voucherService.getVouchers(deviceSecretToken, accessToken);
   }
 
-  @Query(() => Boolean, {
-    name: 'lastUsedVoucher',
-    description: 'Retrieve the voucher list.',
+  @Query(() => Voucher, {
+    name: 'refreshedVoucher',
+    description: 'Retrieve the refreshed voucher.',
   })
-  async getLastUsedVouchers(
+  async getRefreshedVoucher(
     @Args('voucherId') voucherId: string,
     @Args('deviceSecretToken') deviceSecretToken: string,
     @Args('accessToken') accessToken: string
-  ): Promise<boolean> {
-    return this.voucherService.getLastRedeemedVoucher(
+  ): Promise<Voucher> {
+    return this.voucherService.getRefreshedVoucher(
       voucherId,
       deviceSecretToken,
       accessToken
