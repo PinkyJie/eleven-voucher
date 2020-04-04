@@ -19,9 +19,9 @@ export class FacadeResolver {
   }
 
   @Mutation(() => Boolean, {
-    description: 'Refresh all voucher status.',
+    description: 'Refresh all fuel prices.',
   })
-  async refreshAllVouchers(): Promise<boolean> {
-    return this.facadeService.refreshAllVouchers();
+  async refreshAllFuelPrices(): Promise<boolean> {
+    return this.facadeService.refreshAllFuelPrices();
   }
 }

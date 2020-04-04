@@ -6,6 +6,7 @@ import { BASE_URL, HOST, ANDROID_VERSION, APP_VERSION } from './constant';
 export async function request(options: {
   url: string;
   method: Method;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   deviceSecretToken?: string;
   accessToken?: string;

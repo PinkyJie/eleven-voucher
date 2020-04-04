@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import admin from 'firebase-admin';
-import { subDays } from 'date-fns';
 
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
 
@@ -34,8 +33,8 @@ export class DbService {
     const fuelPriceRef = this.db.collection('fuel_prices');
     return fuelPriceRef
       .where('fuelType', '==', fuelType)
-      .orderBy('updatedTime')
-      .limitToLast(1)
+      .orderBy('updatedTime', 'desc')
+      .limit(1)
       .get();
   }
 
@@ -56,19 +55,28 @@ export class DbService {
     await voucherRef.add({ ...voucher, timestamp: this.getServerTimestamp() });
   }
 
-  async getVouchersForYesterday() {
-    const voucherRef = this.db.collection('vouchers');
-    const weekAgo = subDays(new Date(), 1);
-    return voucherRef
-      .where('createdAt', '>', Math.floor(weekAgo.getTime() / 1000))
-      .get();
-  }
-
   async getUserByEmail(email: string) {
     const userRef = this.db.collection('users');
     return userRef
       .where('email', '==', email)
       .limit(1)
+      .get();
+  }
+
+  async getValidVouchersByFuelType(
+    fuelType: FuelType,
+    price: number,
+    limit: number
+  ) {
+    const voucherRef = this.db.collection('vouchers');
+    const now = Math.floor(new Date().getTime() / 1000);
+    return voucherRef
+      .where('fuelType', '==', fuelType)
+      .where('status', '==', 0)
+      .where('price', '<=', price)
+      .where('expireAt', '>', now)
+      .orderBy('createdAt')
+      .limit(limit)
       .get();
   }
 }
