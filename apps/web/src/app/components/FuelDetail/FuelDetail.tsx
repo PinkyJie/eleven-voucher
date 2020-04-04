@@ -126,7 +126,7 @@ export const FuelDetail = () => {
         <Message.Header>Got you covered</Message.Header>
         Enjoy your voucher for &nbsp;
         <Label color="teal" horizontal>
-          {fuelType} - ${prices[fuelType].price} c/L
+          {fuelType} - ${data.genAccountAndLockInVoucher.voucher?.fuelPrice} c/L
         </Label>
         before &nbsp;
         <Label color="teal" horizontal>
