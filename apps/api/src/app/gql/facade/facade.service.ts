@@ -214,8 +214,7 @@ export class FacadeService {
     const dbVoucher = voucherDoc.data();
     const voucherId = dbVoucher.id;
     const voucherStatus = dbVoucher.status;
-    logger.log('Refresh voucher:');
-    logger.log(`Existing status: ${voucherStatus}`);
+    logger.log(`Existing voucher status: ${voucherStatus}`);
     const email = dbVoucher.email;
     // get account
     logger.log(`Get account info for: ${email}`);
@@ -234,13 +233,13 @@ export class FacadeService {
       deviceSecretToken,
       accessToken
     );
-    logger.log(`New status: ${refreshedVoucher.status}`);
+    logger.log(`New voucher status: ${refreshedVoucher.status}`);
     const needUpdate = refreshedVoucher.status !== voucherStatus;
     if (needUpdate) {
-      logger.log(`Update status to: ${refreshedVoucher.status}`);
+      logger.log('Update new voucher status to DB');
       await voucherDoc.ref.set({ status: refreshedVoucher.status });
     } else {
-      logger.log('No status update required');
+      logger.log('No voucher status update required');
     }
     // logout account
     logger.log(`Start logout: ${email}`);
@@ -261,6 +260,7 @@ export class FacadeService {
       price,
       limit
     );
+    logger.log(`Found ${voucherDocs.length} vouchers in DB.`);
     const validVouchers: DbVoucher[] = [];
     // for-of can keep the sequence of await in loop
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
@@ -270,6 +270,9 @@ export class FacadeService {
         validVouchers.push(refreshedDbVoucher);
       }
     }
+    logger.log(
+      `After refresh, only ${validVouchers.length} vouchers are still valid.`
+    );
     return validVouchers;
   }
 
@@ -291,7 +294,6 @@ export class FacadeService {
       const voucherSnapshot = await this.dbService.getVouchersByEmail(
         dbUser.email
       );
-      logger.log(`Found ${voucherSnapshot.docs.length} in DB.`);
       const activeVouchers = [];
       for (const voucherDoc of voucherSnapshot.docs) {
         const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
@@ -325,6 +327,7 @@ export class FacadeService {
     const newUserCount = lockCount - availableUsers.length;
     let result: AccountAndVoucher;
     // use existing user to lock
+    logger.log(`Use ${availableUsers.length} existing users to lock.`);
     for (const user of availableUsers) {
       this.switchToNewDeviceId();
       const account = await this.accountService.login(
@@ -345,6 +348,7 @@ export class FacadeService {
         voucher,
       };
     }
+    logger.log(`Register ${newUserCount} new users to lock.`);
     if (newUserCount > 0) {
       // create new user to lock in
       const range = new Array(newUserCount).map((_, idx) => idx);
