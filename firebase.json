@@ -1,7 +1,4 @@
 {
-  "functions": {
-    "source": "firebase-deploy"
-  },
   "hosting": {
     "public": "dist/apps/web",
     "rewrites": [

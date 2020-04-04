@@ -18,9 +18,9 @@ import { getDeviceId } from './seven-eleven/utils/device-id';
         deviceId: getDeviceId(),
       }),
       playground: true,
-      ...(process.env.GCLOUD_PROJECT
+      ...(process.env.READ_ONLY_FS
         ? {
-            // firebase deployment doesn't support file generation
+            // for read only file system, use in memory file
             autoSchemaFile: true,
           }
         : { autoSchemaFile: 'schema.gql' }),

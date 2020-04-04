@@ -5,7 +5,6 @@
   "engines": {
     "node": "10"
   },
-  "main": "main.js",
   "scripts": {
     "nx": "nx",
     "start": "nx serve",
@@ -28,7 +27,9 @@
     "workspace-schematic": "nx workspace-schematic",
     "dep-graph": "nx dep-graph",
     "help": "nx help",
-    "generate": "graphql-codegen --config codegen.yml"
+    "clean": "shx rm -rf dist",
+    "generate": "graphql-codegen --config codegen.yml",
+    "cp:config": "shx cp package.json app.yaml dist/apps/api"
   },
   "private": true,
   "dependencies": {
@@ -46,7 +47,6 @@
     "document-register-element": "1.13.1",
     "faker": "^4.1.0",
     "firebase-admin": "^8.10.0",
-    "firebase-functions": "^3.5.0",
     "graphql": "^14.6.0",
     "graphql-tools": "^4.0.7",
     "react": "16.13.1",
@@ -95,6 +95,7 @@
     "graphql-tag": "^2.10.3",
     "jest": "24.9.0",
     "prettier": "1.19.1",
+    "shx": "^0.3.2",
     "ts-jest": "24.0.0",
     "ts-node": "~7.0.0",
     "tslint": "~6.0.0",

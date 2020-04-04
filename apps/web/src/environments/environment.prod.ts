@@ -1,5 +1,4 @@
 export const environment = {
   production: true,
-  backendUrl:
-    'https://us-central1-eleven-voucher.cloudfunctions.net/api/graphql',
+  backendUrl: 'https://eleven-voucher.uc.r.appspot.com/graphql',
 };

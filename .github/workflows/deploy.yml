@@ -1,4 +1,4 @@
-name: Firebase deploy
+name: Deploy
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  firebase-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +22,23 @@ jobs:
           yarn lint api
       - name: Build for production
         run: |
+          yarn clean
           yarn build web --prod
           yarn build api --prod
-      - name: Setup folder for firebase deploy
-        run: |
-          mkdir firebase-deploy
-          cp dist/apps/api/* package.json firebase-deploy
-      - uses: w9jds/firebase-action@master
+      - name: Deploy front end
+        uses: w9jds/firebase-action@master
         with:
           args: deploy
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Setup Gcloud fro backend deployment
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          project_id: eleven-voucher
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      - name: Deploy backend
+        run: |
+          yarn cp:config
+          cd dist/apps/api
+          gcloud app deploy
