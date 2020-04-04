@@ -92,8 +92,8 @@ export class DbService {
       .orderBy('expiredAt')
       .limit(limit * 2)
       .get();
-    return voucherSnapshot.docs.filter(
-      voucherDoc => voucherDoc.get('price') < price
-    );
+    return voucherSnapshot.docs
+      .filter(voucherDoc => voucherDoc.get('fuelPrice') <= price)
+      .slice(0, limit);
   }
 }

@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import faker from 'faker';
 import { format } from 'date-fns';
+import { CONTEXT } from '@nestjs/graphql';
 
 import { EmailService } from '../email/email.service';
 import { AccountService } from '../seven-eleven/account/account.service';
@@ -11,6 +12,8 @@ import { Account } from '../seven-eleven/account/account.model';
 import { DbService } from '../../db/db.service';
 import { Voucher } from '../seven-eleven/voucher/voucher.model';
 import { DbUser } from '../../db/db.model';
+import { getDeviceId } from '../seven-eleven/utils/device-id';
+import { GqlContext } from '../gql.context';
 
 import { AccountAndVoucher } from './facade.model';
 
@@ -63,8 +66,14 @@ export class FacadeService {
     private accountService: AccountService,
     private fuelService: FuelService,
     private voucherService: VoucherService,
-    private dbService: DbService
+    private dbService: DbService,
+    @Inject(CONTEXT) private readonly ctx: GqlContext
   ) {}
+
+  private switchToNewDeviceId() {
+    this.ctx.deviceId = getDeviceId();
+    logger.log(`Switch device id to: ${this.ctx.deviceId}`);
+  }
 
   private async registerAccount() {
     const emailDomains = ['@1secmail.net', '@1secmail.com', '@1secmail.org'];
@@ -221,7 +230,7 @@ export class FacadeService {
     const dbVoucher = voucherDoc.data();
     const voucherId = dbVoucher.id;
     const voucherStatus = dbVoucher.status;
-    logger.log(`Refresh voucher: ${voucherId}`);
+    logger.log('Refresh voucher:');
     logger.log(`Existing status: ${voucherStatus}`);
     const email = dbVoucher.email;
     // get account
@@ -229,7 +238,8 @@ export class FacadeService {
     const userSnapshot = await this.dbService.getUserByEmail(email);
     const password = userSnapshot.docs[0].get('password');
     // login account
-    logger.log(`Start login: ${email}`);
+    // before every login, switch to a new device id
+    this.switchToNewDeviceId();
     const { deviceSecretToken, accessToken } = await this.accountService.login(
       email,
       password
@@ -356,18 +366,19 @@ export class FacadeService {
           },
           {}
         );
+        /**
+         * Only find 1 available user and lock due to potential
+         * rate limit (HTTP 412)
+         */
         const availableUsers = await this.findAvailableUsers(
           fuelType,
           knownUnavailableEmails,
-          needCreateVoucherCount
+          1
         );
-        logger.log(
-          `Available users for: ${fuelType} - ${availableUsers.length}/${needCreateVoucherCount}`
-        );
-        const needCreateUserCount =
-          needCreateVoucherCount - availableUsers.length;
-        // lock in for existing available users
-        for (const user of availableUsers) {
+        // lock in for existing available user
+        if (availableUsers.length > 0) {
+          const user = availableUsers[0];
+          this.switchToNewDeviceId();
           const account = await this.accountService.login(
             user.email,
             user.password
@@ -376,9 +387,12 @@ export class FacadeService {
             lat: fuelPrice.lat,
             lng: fuelPrice.lng,
           });
-        }
-        // lock in for new users
-        for (let i = 0; i < needCreateUserCount; i++) {
+        } else {
+          /**
+           * If there is no available user, create 1 new account and lock.
+           * Note: create more will cause API rate limit (HTTP 412).
+           */
+          this.switchToNewDeviceId();
           await this.lockInWithNewAccount(fuelType, {
             lat: fuelPrice.lat,
             lng: fuelPrice.lng,
