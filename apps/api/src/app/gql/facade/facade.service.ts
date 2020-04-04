@@ -7,11 +7,11 @@ import { EmailService } from '../email/email.service';
 import { AccountService } from '../seven-eleven/account/account.service';
 import { FuelService } from '../seven-eleven/fuel/fuel.service';
 import { VoucherService } from '../seven-eleven/voucher/voucher.service';
-import { FuelPrice, FuelType } from '../seven-eleven/fuel/fuel.model';
+import { FuelType } from '../seven-eleven/fuel/fuel.model';
 import { Account } from '../seven-eleven/account/account.model';
 import { DbService } from '../../db/db.service';
 import { Voucher } from '../seven-eleven/voucher/voucher.model';
-import { DbUser } from '../../db/db.model';
+import { DbUser, DbVoucher } from '../../db/db.model';
 import { getDeviceId } from '../seven-eleven/utils/device-id';
 import { GqlContext } from '../gql.context';
 
@@ -210,7 +210,7 @@ export class FacadeService {
     voucherDoc: FirebaseFirestore.QueryDocumentSnapshot<
       FirebaseFirestore.DocumentData
     >
-  ): Promise<Voucher> {
+  ): Promise<DbVoucher> {
     const dbVoucher = voucherDoc.data();
     const voucherId = dbVoucher.id;
     const voucherStatus = dbVoucher.status;
@@ -238,35 +238,36 @@ export class FacadeService {
     const needUpdate = refreshedVoucher.status !== voucherStatus;
     if (needUpdate) {
       logger.log(`Update status to: ${refreshedVoucher.status}`);
-      await voucherDoc.ref.set({ status: refreshedVoucher });
+      await voucherDoc.ref.set({ status: refreshedVoucher.status });
     } else {
       logger.log('No status update required');
     }
     // logout account
     logger.log(`Start logout: ${email}`);
     await this.accountService.logout(deviceSecretToken, accessToken);
-    return refreshedVoucher;
+    return {
+      ...refreshedVoucher,
+      email,
+    };
   }
 
   private async getValidVouchers(
     fuelType: FuelType,
     price: number,
     limit: number
-  ): Promise<
-    FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[]
-  > {
+  ): Promise<DbVoucher[]> {
     const voucherDocs = await this.dbService.getValidVouchersByFuelType(
       fuelType,
       price,
       limit
     );
-    const validVouchers = [];
+    const validVouchers: DbVoucher[] = [];
     // for-of can keep the sequence of await in loop
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
     for (const voucherDoc of voucherDocs) {
-      const refreshedVoucher = await this.refreshVoucher(voucherDoc);
-      if (refreshedVoucher.status === 0) {
-        validVouchers.push(refreshedVoucher);
+      const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
+      if (refreshedDbVoucher.status === 0) {
+        validVouchers.push(refreshedDbVoucher);
       }
     }
     return validVouchers;
@@ -290,10 +291,11 @@ export class FacadeService {
       const voucherSnapshot = await this.dbService.getVouchersByEmail(
         dbUser.email
       );
+      logger.log(`Found ${voucherSnapshot.docs.length} in DB.`);
       const activeVouchers = [];
       for (const voucherDoc of voucherSnapshot.docs) {
-        const refreshedVoucher = await this.refreshVoucher(voucherDoc);
-        if (refreshedVoucher.status === 0) {
+        const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
+        if (refreshedDbVoucher.status === 0) {
           activeVouchers.push(voucherDoc);
         }
       }
@@ -380,19 +382,19 @@ export class FacadeService {
       logger.log(`Check if we need to lock more voucher:`);
       // make sure we have 5 vouchers maximum
       const maxVoucherCount = 5;
-      const validVouchers = await this.getValidVouchers(
+      const validDbVouchers = await this.getValidVouchers(
         fuelType,
         fuelPrice.price,
         maxVoucherCount
       );
       logger.log(
-        `Valid vouchers for: ${fuelType} - ${validVouchers.length}/${maxVoucherCount}`
+        `Valid vouchers for: ${fuelType} - ${validDbVouchers.length}/${maxVoucherCount}`
       );
-      const needCreateVoucherCount = maxVoucherCount - validVouchers.length;
+      const needCreateVoucherCount = maxVoucherCount - validDbVouchers.length;
       if (needCreateVoucherCount > 0) {
-        const knownUnavailableEmails = validVouchers.reduce(
-          (result, voucherDoc) => {
-            result[voucherDoc.get('email')] = true;
+        const knownUnavailableEmails = validDbVouchers.reduce(
+          (result, dbVoucher) => {
+            result[dbVoucher.email] = true;
             return result;
           },
           {} as KnownUnavailableEmails
@@ -432,19 +434,20 @@ export class FacadeService {
     if (voucherDocs.length > 0) {
       logger.log(`Found one voucher in DB: ${voucherDocs[0].get('code')}`);
       logger.log('Is this voucher still valid against API?');
-      const refreshedVoucher = await this.refreshVoucher(voucherDocs[0]);
-      if (refreshedVoucher.status === 0) {
+      const refreshedDbVoucher = await this.refreshVoucher(voucherDocs[0]);
+      if (refreshedDbVoucher.status === 0) {
         logger.log(`Voucher ${voucherDocs[0].get('code')} is valid, return!`);
         const userSnapshot = await this.dbService.getUserByEmail(
           voucherDocs[0].get('email')
         );
         const user = userSnapshot.docs[0].data() as DbUser;
+        const { email, ...voucher } = refreshedDbVoucher;
         return {
           account: {
-            email: user.email,
+            email,
             password: user.password,
           },
-          voucher: refreshedVoucher,
+          voucher,
         };
       }
     }
