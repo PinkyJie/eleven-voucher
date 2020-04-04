@@ -59,6 +59,10 @@ function getPhoneNumber() {
   return phoneArr.join('');
 }
 
+interface KnownUnavailableEmails {
+  [email: string]: boolean;
+}
+
 @Injectable()
 export class FacadeService {
   constructor(
@@ -134,17 +138,15 @@ export class FacadeService {
   private async lockInWithExistingAccount(
     account: Account,
     fuelType: FuelType,
-    location: {
-      lat: number;
-      lng: number;
-    }
+    lat: number,
+    lng: number
   ): Promise<Voucher> {
     const voucher = await this.voucherService.lockInVoucher(
       account.id,
       fuelType,
       150,
-      location.lat,
-      location.lng,
+      lat,
+      lng,
       account.deviceSecretToken,
       account.accessToken
     );
@@ -158,10 +160,8 @@ export class FacadeService {
 
   private async lockInWithNewAccount(
     fuelType: FuelType,
-    location: {
-      lat: number;
-      lng: number;
-    }
+    lat: number,
+    lng: number
   ): Promise<AccountAndVoucher> {
     // register a new account
     logger.log('1. Account registration:');
@@ -185,11 +185,12 @@ export class FacadeService {
 
     // lock in
     logger.log('3. Lock in voucher:');
-    const { lat, lng } = location;
-    const voucher = await this.lockInWithExistingAccount(account, fuelType, {
+    const voucher = await this.lockInWithExistingAccount(
+      account,
+      fuelType,
       lat,
-      lng,
-    });
+      lng
+    );
 
     await this.dbService.addNewVoucher({
       ...voucher,
@@ -203,23 +204,6 @@ export class FacadeService {
       },
       voucher,
     };
-  }
-
-  async genAccountAndLockInVoucher(
-    fuelType: FuelType
-  ): Promise<AccountAndVoucher> {
-    // get best fuel price
-    logger.log('Get fuel price:');
-    const fuelPrices = await this.fuelService.getFuelPrices();
-    const { price, lat, lng } = fuelPrices[fuelType] as FuelPrice;
-    logger.log(`Fuel type: ${fuelType}`);
-    logger.log(`Price: ${price}`);
-    logger.log(`Latitude: ${lat}`);
-    logger.log(`Longitude: ${lng}`);
-
-    // lock in
-    logger.log('Lock in with a new account:');
-    return this.lockInWithNewAccount(fuelType, { lat, lng });
   }
 
   private async refreshVoucher(
@@ -290,9 +274,7 @@ export class FacadeService {
 
   private async findAvailableUsers(
     fuelType: FuelType,
-    blacklist: {
-      [key: string]: boolean;
-    },
+    blacklist: KnownUnavailableEmails,
     limit: number
   ): Promise<DbUser[]> {
     const allUsersForThisFuelSnapshot = await this.dbService.getUserByFuelType(
@@ -326,6 +308,56 @@ export class FacadeService {
     return availableUsers;
   }
 
+  async lockInWithExistingOrNewUser(
+    fuelType: FuelType,
+    knownUnavailableEmails: KnownUnavailableEmails,
+    lat: number,
+    lng: number,
+    lockCount: number
+  ): Promise<AccountAndVoucher> {
+    const availableUsers = await this.findAvailableUsers(
+      fuelType,
+      knownUnavailableEmails,
+      lockCount
+    );
+    const newUserCount = lockCount - availableUsers.length;
+    let result: AccountAndVoucher;
+    // use existing user to lock
+    for (const user of availableUsers) {
+      this.switchToNewDeviceId();
+      const account = await this.accountService.login(
+        user.email,
+        user.password
+      );
+      const voucher = await this.lockInWithExistingAccount(
+        account,
+        fuelType,
+        lat,
+        lng
+      );
+      result = {
+        account: {
+          email: user.email,
+          password: user.password,
+        },
+        voucher,
+      };
+    }
+    if (newUserCount > 0) {
+      // create new user to lock in
+      const range = new Array(newUserCount).map((_, idx) => idx);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for (const i of range) {
+        this.switchToNewDeviceId();
+        result = await this.lockInWithNewAccount(fuelType, lat, lng);
+      }
+    }
+    if (lockCount === 1) {
+      return result;
+    }
+    return null;
+  }
+
   async refreshAllFuelPrices(): Promise<boolean> {
     const { updated, ...fuelPrices } = await this.fuelService.getFuelPrices();
 
@@ -346,58 +378,35 @@ export class FacadeService {
       logger.log(`${fuelType}: new price found`);
       const fuelPrice = fuelPrices[fuelType];
       logger.log(`Check if we need to lock more voucher:`);
-      // make sure we always have 5 vouchers
-      const requiredVoucherCount = 5;
+      // make sure we have 5 vouchers maximum
+      const maxVoucherCount = 5;
       const validVouchers = await this.getValidVouchers(
         fuelType,
         fuelPrice.price,
-        requiredVoucherCount
+        maxVoucherCount
       );
       logger.log(
-        `Valid vouchers for: ${fuelType} - ${validVouchers.length}/${requiredVoucherCount}`
+        `Valid vouchers for: ${fuelType} - ${validVouchers.length}/${maxVoucherCount}`
       );
-      const needCreateVoucherCount =
-        requiredVoucherCount - validVouchers.length;
+      const needCreateVoucherCount = maxVoucherCount - validVouchers.length;
       if (needCreateVoucherCount > 0) {
         const knownUnavailableEmails = validVouchers.reduce(
           (result, voucherDoc) => {
             result[voucherDoc.get('email')] = true;
             return result;
           },
-          {}
+          {} as KnownUnavailableEmails
         );
         /**
-         * Only find 1 available user and lock due to potential
-         * rate limit (HTTP 412)
+         * Only lock 2 vouchers to prevent potential rate limit (HTTP 412)
          */
-        const availableUsers = await this.findAvailableUsers(
+        this.lockInWithExistingOrNewUser(
           fuelType,
           knownUnavailableEmails,
-          1
+          fuelPrice.lat,
+          fuelPrice.lng,
+          2
         );
-        // lock in for existing available user
-        if (availableUsers.length > 0) {
-          const user = availableUsers[0];
-          this.switchToNewDeviceId();
-          const account = await this.accountService.login(
-            user.email,
-            user.password
-          );
-          await this.lockInWithExistingAccount(account, fuelType, {
-            lat: fuelPrice.lat,
-            lng: fuelPrice.lng,
-          });
-        } else {
-          /**
-           * If there is no available user, create 1 new account and lock.
-           * Note: create more will cause API rate limit (HTTP 412).
-           */
-          this.switchToNewDeviceId();
-          await this.lockInWithNewAccount(fuelType, {
-            lat: fuelPrice.lat,
-            lng: fuelPrice.lng,
-          });
-        }
       }
       // write this new price to DB
       await this.dbService.addNewFuelPrice({
@@ -406,5 +415,40 @@ export class FacadeService {
       });
     }
     return true;
+  }
+
+  async getMeAVoucher(
+    fuelType: FuelType,
+    price: number,
+    lat: number,
+    lng: number
+  ): Promise<AccountAndVoucher> {
+    logger.log(`Trying to get a voucher for: ${fuelType} - ${price}c/L`);
+    const voucherDocs = await this.dbService.getValidVouchersByFuelType(
+      fuelType,
+      price,
+      1
+    );
+    if (voucherDocs.length > 0) {
+      logger.log(`Found one voucher in DB: ${voucherDocs[0].get('code')}`);
+      logger.log('Is this voucher still valid against API?');
+      const refreshedVoucher = await this.refreshVoucher(voucherDocs[0]);
+      if (refreshedVoucher.status === 0) {
+        logger.log(`Voucher ${voucherDocs[0].get('code')} is valid, return!`);
+        const userSnapshot = await this.dbService.getUserByEmail(
+          voucherDocs[0].get('email')
+        );
+        const user = userSnapshot.docs[0].data() as DbUser;
+        return {
+          account: {
+            email: user.email,
+            password: user.password,
+          },
+          voucher: refreshedVoucher,
+        };
+      }
+    }
+    logger.log('No voucher available in DB for this price, lock a new one!');
+    return this.lockInWithExistingOrNewUser(fuelType, {}, lat, lng, 1);
   }
 }

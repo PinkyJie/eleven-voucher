@@ -3,26 +3,38 @@ query GetFuelPrice {
     E10 {
       price
       name
+      lat
+      lng
     }
     U91 {
       price
       name
+      lat
+      lng
     }
     U95 {
       price
       name
+      lat
+      lng
     }
     U98 {
       price
       name
+      lat
+      lng
     }
     Diesel {
       price
       name
+      lat
+      lng
     }
     LPG {
       price
       name
+      lat
+      lng
     }
     updated
   }

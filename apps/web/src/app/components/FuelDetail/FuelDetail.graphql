@@ -1,5 +1,5 @@
-mutation GenAccountAndLockInVoucher($fuelType: String!) {
-  genAccountAndLockInVoucher(fuelType: $fuelType) {
+mutation GetMeAVoucher($getMeAVoucherInput: GetMeAVoucherInput!) {
+  getMeAVoucher(getMeAVoucherInput: $getMeAVoucherInput) {
     account {
       email
       password

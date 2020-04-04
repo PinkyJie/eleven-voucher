@@ -90,7 +90,6 @@ export class DbService {
       .where('status', '==', 0)
       .where('expiredAt', '>', now)
       .orderBy('expiredAt')
-      .limit(limit * 2)
       .get();
     return voucherSnapshot.docs
       .filter(voucherDoc => voucherDoc.get('fuelPrice') <= price)

@@ -103,6 +103,17 @@ export enum FuelType {
   LPG = 'LPG'
 }
 
+export type GetMeAVoucherInput = {
+  /** Fuel type */
+  fuelType: FuelType;
+  /** Fuel price */
+  fuelPrice: Scalars['Float'];
+  /** Latitude for the location */
+  latitude: Scalars['Float'];
+  /** Longitude for the location */
+  longitude: Scalars['Float'];
+};
+
 export type LockInInput = {
   /** Account ID */
   accountId: Scalars['String'];
@@ -147,7 +158,9 @@ export type Mutation = {
   /** Lock in the fuel price voucher. */
   lockInVoucher?: Maybe<Voucher>;
   /** Get a voucher directly. */
-  genAccountAndLockInVoucher: AccountAndVoucher;
+  getMeAVoucher: AccountAndVoucher;
+  /** Refresh all fuel prices. */
+  refreshAllFuelPrices: Scalars['Boolean'];
 };
 
 
@@ -176,8 +189,8 @@ export type MutationLockInVoucherArgs = {
 };
 
 
-export type MutationGenAccountAndLockInVoucherArgs = {
-  fuelType: Scalars['String'];
+export type MutationGetMeAVoucherArgs = {
+  getMeAVoucherInput: GetMeAVoucherInput;
 };
 
 export type NewAccount = {
@@ -196,8 +209,8 @@ export type Query = {
   fuel: Fuel;
   /** Retrieve the voucher list. */
   vouchers: Array<Maybe<Voucher>>;
-  /** Retrieve the voucher list. */
-  lastUsedVoucher: Scalars['Boolean'];
+  /** Retrieve the refreshed voucher. */
+  refreshedVoucher: Voucher;
   /** Retrieve messages for a specific email address. */
   emailMessages: Array<Maybe<EmailMessage>>;
   /** Retrieve a message with a specific message ID. */
@@ -213,7 +226,7 @@ export type QueryVouchersArgs = {
 };
 
 
-export type QueryLastUsedVoucherArgs = {
+export type QueryRefreshedVoucherArgs = {
   accessToken: Scalars['String'];
   deviceSecretToken: Scalars['String'];
   voucherId: Scalars['String'];
@@ -272,14 +285,14 @@ export type Voucher = {
   expiredAt: Scalars['Int'];
 };
 
-export type GenAccountAndLockInVoucherMutationVariables = {
-  fuelType: Scalars['String'];
+export type GetMeAVoucherMutationVariables = {
+  getMeAVoucherInput: GetMeAVoucherInput;
 };
 
 
-export type GenAccountAndLockInVoucherMutation = (
+export type GetMeAVoucherMutation = (
   { __typename?: 'Mutation' }
-  & { genAccountAndLockInVoucher: (
+  & { getMeAVoucher: (
     { __typename?: 'AccountAndVoucher' }
     & { account: (
       { __typename?: 'NewAccount' }
@@ -301,22 +314,22 @@ export type GetFuelPriceQuery = (
     & Pick<Fuel, 'updated'>
     & { E10: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ), U91: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ), U95: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ), U98: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ), Diesel: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ), LPG: (
       { __typename?: 'FuelPrice' }
-      & Pick<FuelPrice, 'price' | 'name'>
+      & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ) }
   ) }
 );

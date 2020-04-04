@@ -18,12 +18,12 @@ import { format } from 'date-fns';
 
 import {
   FuelType,
-  GenAccountAndLockInVoucherMutation,
-  GenAccountAndLockInVoucherMutationVariables,
+  GetMeAVoucherMutation,
+  GetMeAVoucherMutationVariables,
 } from '../../../generated/generated';
 import { FuelPriceContext } from '../../context';
 
-import GEN_ACCOUNT_AND_LOCK_IN_VOUCHER_MUTATION from './FuelDetail.graphql';
+import GET_ME_A_VOUCHER_MUTATION from './FuelDetail.graphql';
 
 const StyledFuelDetail = styled.div`
   margin: 1em 0;
@@ -55,18 +55,28 @@ export const FuelDetail = () => {
   const fuelType = convertRouterParamsToFuelType(fuelTypeInRouter);
 
   const [getMeAVoucher, { data, loading, error }] = useMutation<
-    GenAccountAndLockInVoucherMutation,
-    GenAccountAndLockInVoucherMutationVariables
-  >(GEN_ACCOUNT_AND_LOCK_IN_VOUCHER_MUTATION);
+    GetMeAVoucherMutation,
+    GetMeAVoucherMutationVariables
+  >(GET_ME_A_VOUCHER_MUTATION);
 
   useEffect(() => {
     if (fuelType) {
-      getMeAVoucher({ variables: { fuelType } });
+      const fuelPrice = prices[fuelType];
+      getMeAVoucher({
+        variables: {
+          getMeAVoucherInput: {
+            fuelType,
+            fuelPrice: fuelPrice.price,
+            latitude: fuelPrice.lat,
+            longitude: fuelPrice.lng,
+          },
+        },
+      });
     }
-  }, [fuelType, getMeAVoucher]);
+  }, [prices, fuelType, getMeAVoucher]);
 
   useEffect(() => {
-    const voucherCode = data?.genAccountAndLockInVoucher.voucher?.code;
+    const voucherCode = data?.getMeAVoucher.voucher?.code;
     if (voucherCode) {
       bwipjs.toCanvas('code', {
         bcid: 'code128',
@@ -126,12 +136,12 @@ export const FuelDetail = () => {
         <Message.Header>Got you covered</Message.Header>
         Enjoy your voucher for &nbsp;
         <Label color="teal" horizontal>
-          {fuelType} - ${data.genAccountAndLockInVoucher.voucher?.fuelPrice} c/L
+          {fuelType} - ${data.getMeAVoucher.voucher?.fuelPrice} c/L
         </Label>
         before &nbsp;
         <Label color="teal" horizontal>
           {format(
-            new Date(data.genAccountAndLockInVoucher.voucher?.expiredAt * 1000),
+            new Date(data.getMeAVoucher.voucher?.expiredAt * 1000),
             'do MMMM yyyy'
           )}
         </Label>
@@ -160,8 +170,8 @@ export const FuelDetail = () => {
         <Modal.Header>Account</Modal.Header>
         <Modal.Content image>
           <Modal.Description>
-            <p> {data.genAccountAndLockInVoucher?.account?.email}</p>
-            <p>{data.genAccountAndLockInVoucher?.account?.password}</p>
+            <p> {data.getMeAVoucher?.account?.email}</p>
+            <p>{data.getMeAVoucher?.account?.password}</p>
           </Modal.Description>
         </Modal.Content>
       </Modal>

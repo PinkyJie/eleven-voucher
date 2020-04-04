@@ -2,7 +2,7 @@
 declare module '*/FuelDetail.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
-  export const GenAccountAndLockInVoucher: DocumentNode;
+  export const GetMeAVoucher: DocumentNode;
 
   export default defaultDocument;
 }

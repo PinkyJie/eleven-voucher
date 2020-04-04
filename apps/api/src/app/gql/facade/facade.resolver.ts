@@ -1,9 +1,8 @@
 import { Resolver, Args, Mutation } from '@nestjs/graphql';
 
-import { FuelType } from '../seven-eleven/fuel/fuel.model';
-
 import { FacadeService } from './facade.service';
 import { AccountAndVoucher } from './facade.model';
+import { GetMeAVoucherInput } from './facade.dto';
 
 @Resolver()
 export class FacadeResolver {
@@ -12,10 +11,16 @@ export class FacadeResolver {
   @Mutation(() => AccountAndVoucher, {
     description: 'Get a voucher directly.',
   })
-  async genAccountAndLockInVoucher(
-    @Args('fuelType') fuelType: string
+  async getMeAVoucher(
+    @Args('getMeAVoucherInput') getMeAVoucherInput: GetMeAVoucherInput
   ): Promise<AccountAndVoucher> {
-    return this.facadeService.genAccountAndLockInVoucher(fuelType as FuelType);
+    const { fuelType, fuelPrice, latitude, longitude } = getMeAVoucherInput;
+    return this.facadeService.getMeAVoucher(
+      fuelType,
+      fuelPrice,
+      latitude,
+      longitude
+    );
   }
 
   @Mutation(() => Boolean, {
