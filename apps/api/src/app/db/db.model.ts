@@ -1,4 +1,4 @@
-import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
+import { FuelType, FuelPrice } from '../gql/seven-eleven/fuel/fuel.model';
 import { Voucher } from '../gql/seven-eleven/voucher/voucher.model';
 
 export class DbUser {
@@ -11,13 +11,7 @@ export class DbUser {
   fuelType: FuelType;
 }
 
-export class DbFuelPrice {
-  fuelType: FuelType;
-  price: number;
-  state: string;
-  store: string;
-  suburb: string;
-  postCode: string;
+export class DbFuelPrice extends FuelPrice {
   updatedTime: number;
 }
 

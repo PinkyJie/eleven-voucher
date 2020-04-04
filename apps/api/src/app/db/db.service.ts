@@ -32,7 +32,7 @@ export class DbService {
   async getLatestFuelPriceRecord(fuelType: FuelType) {
     const fuelPriceRef = this.db.collection('fuel_prices');
     return fuelPriceRef
-      .where('fuelType', '==', fuelType)
+      .where('type', '==', fuelType)
       .orderBy('updatedTime', 'desc')
       .limit(1)
       .get();
@@ -63,6 +63,21 @@ export class DbService {
       .get();
   }
 
+  async getUserByFuelType(fuelType: FuelType) {
+    const userRef = this.db.collection('users');
+    return userRef.where('fuelType', '==', fuelType).get();
+  }
+
+  async getVouchersByEmail(email: string) {
+    const voucherRef = this.db.collection('vouchers');
+    const now = Math.floor(new Date().getTime() / 1000);
+    return voucherRef
+      .where('email', '==', email)
+      .where('status', '==', 0)
+      .where('expiredAt', '>', now)
+      .get();
+  }
+
   async getValidVouchersByFuelType(
     fuelType: FuelType,
     price: number,
@@ -70,13 +85,15 @@ export class DbService {
   ) {
     const voucherRef = this.db.collection('vouchers');
     const now = Math.floor(new Date().getTime() / 1000);
-    return voucherRef
+    const voucherSnapshot = await voucherRef
       .where('fuelType', '==', fuelType)
       .where('status', '==', 0)
-      .where('price', '<=', price)
-      .where('expireAt', '>', now)
-      .orderBy('createdAt')
-      .limit(limit)
+      .where('expiredAt', '>', now)
+      .orderBy('expiredAt')
+      .limit(limit * 2)
       .get();
+    return voucherSnapshot.docs.filter(
+      voucherDoc => voucherDoc.get('price') < price
+    );
   }
 }
