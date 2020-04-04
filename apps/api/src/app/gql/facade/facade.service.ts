@@ -402,7 +402,7 @@ export class FacadeService {
         /**
          * Only lock 2 vouchers to prevent potential rate limit (HTTP 412)
          */
-        this.lockInWithExistingOrNewUser(
+        await this.lockInWithExistingOrNewUser(
           fuelType,
           knownUnavailableEmails,
           fuelPrice.lat,
