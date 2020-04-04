@@ -32,13 +32,14 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Setup gcloud for backend deployment
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: zxyle/publish-gae-action@master
         with:
           project_id: eleven-voucher
+          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
       - name: Deploy backend
         run: |
           yarn cp:config
           cd dist/apps/api
+          gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=client-secret.json
           gcloud app deploy
