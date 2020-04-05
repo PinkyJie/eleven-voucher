@@ -3,6 +3,7 @@ import admin from 'firebase-admin';
 
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
 import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
+import { VoucherStatus } from '../gql/seven-eleven/voucher/voucher.model';
 
 import { DbUser, DbFuelPrice, DbVoucher } from './db.model';
 
@@ -32,7 +33,9 @@ export class DbService {
         user,
       },
     });
-    await userRef.add({ ...user, timestamp: this.getServerTimestamp() });
+    await userRef
+      .doc(user.email)
+      .set({ ...user, timestamp: this.getServerTimestamp() });
   }
 
   async getLatestFuelPriceRecord(fuelType: FuelType) {
@@ -73,18 +76,17 @@ export class DbService {
         voucher,
       },
     });
-    await voucherRef.add({ ...voucher, timestamp: this.getServerTimestamp() });
+    await voucherRef
+      .doc(voucher.id)
+      .set({ ...voucher, timestamp: this.getServerTimestamp() });
   }
 
   async getUserByEmail(email: string) {
     const userRef = this.db.collection('users');
-    const result = await userRef
-      .where('email', '==', email)
-      .limit(1)
-      .get();
+    const result = await userRef.doc(email).get();
     this.logger.debug(`Query the user record for email ${email} from DB`, {
       ...this.loggerInfo,
-      meta: { db: result.docs.map(doc => doc.data()) },
+      meta: { db: result.data() },
     });
     return result;
   }
@@ -104,7 +106,7 @@ export class DbService {
     const now = Math.floor(new Date().getTime() / 1000);
     const result = await voucherRef
       .where('email', '==', email)
-      .where('status', '==', 0)
+      .where('status', '==', VoucherStatus.Active)
       .where('expiredAt', '>', now)
       .get();
     this.logger.debug(`Query all vouchers attached to email ${email} from DB`, {
@@ -123,7 +125,7 @@ export class DbService {
     const now = Math.floor(new Date().getTime() / 1000);
     const voucherSnapshot = await voucherRef
       .where('fuelType', '==', fuelType)
-      .where('status', '==', 0)
+      .where('status', '==', VoucherStatus.Active)
       .where('expiredAt', '>', now)
       .orderBy('expiredAt')
       .get();

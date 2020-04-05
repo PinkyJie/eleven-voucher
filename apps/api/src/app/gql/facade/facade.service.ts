@@ -9,7 +9,7 @@ import { VoucherService } from '../seven-eleven/voucher/voucher.service';
 import { FuelType } from '../seven-eleven/fuel/fuel.model';
 import { Account } from '../seven-eleven/account/account.model';
 import { DbService } from '../../db/db.service';
-import { Voucher } from '../seven-eleven/voucher/voucher.model';
+import { Voucher, VoucherStatus } from '../seven-eleven/voucher/voucher.model';
 import { DbUser, DbVoucher } from '../../db/db.model';
 import { getDeviceId } from '../../utils/device-id';
 import { GqlContext } from '../gql.context';
@@ -214,7 +214,7 @@ export class FacadeService {
     const email = dbVoucher.email;
     // get account
     const userSnapshot = await this.dbService.getUserByEmail(email);
-    const password = userSnapshot.docs[0].get('password');
+    const password = userSnapshot.get('password');
     // login account
     // before every login, switch to a new device id
     this.switchToNewDeviceId();
@@ -281,7 +281,7 @@ export class FacadeService {
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
     for (const voucherDoc of voucherDocs) {
       const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
-      if (refreshedDbVoucher.status === 0) {
+      if (refreshedDbVoucher.status === VoucherStatus.Active) {
         validVouchers.push(refreshedDbVoucher);
       }
     }
@@ -324,33 +324,35 @@ export class FacadeService {
 
     for (const dbUser of dbUsers) {
       // check if this user still has active voucher attached
-      const voucherSnapshot = await this.dbService.getVouchersByEmail(
-        dbUser.email
+      const account = await this.accountService.login(
+        dbUser.email,
+        dbUser.password
+      );
+      const vouchers = await this.voucherService.getVouchers(
+        account.deviceSecretToken,
+        account.accessToken
       );
       this.logger.info(
-        `Found ${voucherSnapshot.docs.length} vouchers attached to ${dbUser.email}`,
+        `Found ${vouchers.length} vouchers attached to ${dbUser.email}`,
         {
           ...this.loggerInfo,
           meta: {
             fuelType,
-            vouchers: voucherSnapshot.docs.map(doc => doc.data()),
+            vouchers,
           },
         }
       );
-      const activeVouchers = [];
-      for (const voucherDoc of voucherSnapshot.docs) {
-        const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
-        if (refreshedDbVoucher.status === 0) {
-          activeVouchers.push(voucherDoc);
-        }
-      }
+
+      const activeVouchers = vouchers.filter(
+        voucher => voucher.status === VoucherStatus.Active
+      );
       this.logger.info(
-        `After refresh, ${activeVouchers.length} vouchers attached to ${dbUser.email} are still active`,
+        `${activeVouchers.length} vouchers attached to ${dbUser.email} are still active`,
         {
           ...this.loggerInfo,
           meta: {
             fuelType,
-            vouchers: activeVouchers.map(doc => doc.data()),
+            vouchers: activeVouchers,
           },
         }
       );
@@ -549,11 +551,11 @@ export class FacadeService {
         },
       });
       const refreshedDbVoucher = await this.refreshVoucher(voucherDocs[0]);
-      if (refreshedDbVoucher.status === 0) {
+      if (refreshedDbVoucher.status === VoucherStatus.Active) {
         const userSnapshot = await this.dbService.getUserByEmail(
           voucherDocs[0].get('email')
         );
-        const user = userSnapshot.docs[0].data() as DbUser;
+        const user = userSnapshot.data() as DbUser;
         const { email, ...voucher } = refreshedDbVoucher;
         this.logger.info(`Voucher ${voucher.id} is valid, return!`, {
           ...this.loggerInfo,
