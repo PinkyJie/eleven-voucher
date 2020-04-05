@@ -1,13 +1,12 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CONTEXT } from '@nestjs/graphql';
 
-import { request } from '../utils/request';
 import { FuelType } from '../fuel/fuel.model';
 import { GqlContext } from '../../gql.context';
+import { ApiService } from '../../../api/api.service';
+import { WINSTON_LOGGER, Logger } from '../../../logger/winston-logger';
 
 import { Voucher } from './voucher.model';
-
-const logger = new Logger('VoucherService');
 
 const fuelTypes = [
   {
@@ -56,7 +55,15 @@ interface LastUsedVoucherResponse {
 
 @Injectable()
 export class VoucherService {
-  constructor(@Inject(CONTEXT) private readonly ctx: GqlContext) {}
+  private loggerInfo = {
+    emitter: 'VoucherService',
+  };
+
+  constructor(
+    @Inject(CONTEXT) private readonly ctx: GqlContext,
+    @Inject(WINSTON_LOGGER) private logger: Logger,
+    private apiService: ApiService
+  ) {}
 
   private transformVoucherResponse(voucherResponse: VoucherResponse): Voucher {
     return {
@@ -78,15 +85,19 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<Voucher[]> {
-    logger.log('Get vouchers:');
-    const response = await request({
+    this.logger.debug('Get vouchers:', {
+      ...this.loggerInfo,
+      meta: {
+        deviceSecretToken,
+      },
+    });
+    const response = await this.apiService.elevenRequest({
       url: 'FuelLock/List',
       method: 'GET',
       deviceSecretToken,
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log(response.data);
 
     const vouchers = response.data as VoucherResponse[];
     return vouchers.map(this.transformVoucherResponse);
@@ -101,8 +112,14 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<Voucher> {
-    logger.log('Start lock in:');
-    const startLockInResponse = await request({
+    this.logger.debug('Start lock in:', {
+      ...this.loggerInfo,
+      meta: {
+        fuelType,
+        deviceSecretToken,
+      },
+    });
+    const startLockInResponse = await this.apiService.elevenRequest({
       url: 'FuelLock/StartSession',
       method: 'POST',
       data: {
@@ -114,10 +131,16 @@ export class VoucherService {
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log(startLockInResponse.data);
+    // HTTP 409 means the email already has a voucher attached
     if (startLockInResponse.status === 200) {
-      logger.log('Confirm lock in:');
-      const confirmLockInResponse = await request({
+      this.logger.debug('Confirm lock in:', {
+        ...this.loggerInfo,
+        meta: {
+          fuelType,
+          deviceSecretToken,
+        },
+      });
+      const confirmLockInResponse = await this.apiService.elevenRequest({
         url: 'FuelLock/Confirm',
         method: 'POST',
         data: {
@@ -131,7 +154,6 @@ export class VoucherService {
         accessToken,
         deviceId: this.ctx.deviceId,
       });
-      logger.log(confirmLockInResponse.data);
 
       if (confirmLockInResponse.status === 201) {
         return this.transformVoucherResponse(
@@ -147,15 +169,20 @@ export class VoucherService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<Voucher> {
-    logger.log(`Refresh voucher: ${voucherId}`);
-    const response = await request({
+    this.logger.debug(`Refresh voucher: ${voucherId}`, {
+      ...this.loggerInfo,
+      meta: {
+        voucherId,
+        deviceSecretToken,
+      },
+    });
+    const response = await this.apiService.elevenRequest({
       url: `FuelLock/Refresh?fuelLockId=${voucherId}`,
       method: 'GET',
       deviceSecretToken,
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-    logger.log(response.data);
 
     return this.transformVoucherResponse(response.data as VoucherResponse);
   }

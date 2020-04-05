@@ -1,5 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import faker from 'faker';
+import { Injectable, Inject } from '@nestjs/common';
 import { format } from 'date-fns';
 import { CONTEXT } from '@nestjs/graphql';
 
@@ -12,52 +11,13 @@ import { Account } from '../seven-eleven/account/account.model';
 import { DbService } from '../../db/db.service';
 import { Voucher } from '../seven-eleven/voucher/voucher.model';
 import { DbUser, DbVoucher } from '../../db/db.model';
-import { getDeviceId } from '../seven-eleven/utils/device-id';
+import { getDeviceId } from '../../utils/device-id';
 import { GqlContext } from '../gql.context';
+import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
+import { getFakeUser } from '../../utils/fake-user';
+import { ApiService } from '../../api/api.service';
 
 import { AccountAndVoucher } from './facade.model';
-
-const logger = new Logger('FacadeService');
-
-function multipleAttempts<T>(
-  promiseGenerator: () => Promise<T>,
-  config: {
-    isResolveValueValid: (result: T) => boolean;
-    attempt: number;
-    interval: number;
-  }
-): Promise<T> {
-  const { isResolveValueValid, attempt, interval } = config;
-  logger.log(`Current attempt: ${attempt}`);
-  return new Promise(resolve => {
-    promiseGenerator().then(result => {
-      logger.log(`Result: ${result}`);
-      if (isResolveValueValid(result)) {
-        resolve(result);
-      } else {
-        const attemptsLeft = attempt - 1;
-        if (attemptsLeft === 0) {
-          resolve();
-        } else {
-          setTimeout(() => {
-            multipleAttempts<T>(promiseGenerator, {
-              isResolveValueValid,
-              interval,
-              attempt: attemptsLeft,
-            }).then(resolve);
-          }, interval);
-        }
-      }
-    });
-  });
-}
-
-function getPhoneNumber() {
-  const phoneNumber = faker.phone.phoneNumberFormat();
-  const phoneArr = phoneNumber.replace(/ /g, '').split('');
-  phoneArr.splice(1, 1, '4');
-  return phoneArr.join('');
-}
 
 interface KnownUnavailableEmails {
   [email: string]: boolean;
@@ -65,36 +25,30 @@ interface KnownUnavailableEmails {
 
 @Injectable()
 export class FacadeService {
+  private loggerInfo = {
+    emitter: 'FacadeService',
+  };
+
   constructor(
     private emailService: EmailService,
     private accountService: AccountService,
     private fuelService: FuelService,
     private voucherService: VoucherService,
     private dbService: DbService,
-    @Inject(CONTEXT) private readonly ctx: GqlContext
+    private apiService: ApiService,
+    @Inject(CONTEXT) private readonly ctx: GqlContext,
+    @Inject(WINSTON_LOGGER) private logger: Logger
   ) {}
 
   private switchToNewDeviceId() {
     this.ctx.deviceId = getDeviceId();
-    logger.log(`Switch device id to: ${this.ctx.deviceId}`);
+    this.logger.debug(`Switch device id to: ${this.ctx.deviceId}`, {
+      ...this.loggerInfo,
+    });
   }
 
   private async registerAccount() {
-    const emailDomains = ['@1secmail.net', '@1secmail.com', '@1secmail.org'];
-    const randomIdx = Math.floor(Math.random() * 3);
-
-    faker.locale = 'en_AU';
-    const email = `${faker.internet.userName()}${emailDomains[randomIdx]}`;
-    const password = faker.internet.password();
-    const registerData = {
-      email,
-      password,
-      firstName: faker.name.firstName(),
-      lastName: faker.name.lastName(),
-      phone: getPhoneNumber(),
-      dob: faker.date.between(new Date(1980, 1, 1), new Date(1995, 1, 1)),
-    };
-
+    const registerData = getFakeUser();
     const registerResponse = await this.accountService.register(
       registerData.email,
       registerData.password,
@@ -105,6 +59,13 @@ export class FacadeService {
     );
 
     if (registerResponse === false) {
+      this.logger.error('Registration fail', {
+        ...this.loggerInfo,
+        meta: {
+          ...registerData,
+          deviceId: this.ctx.deviceId,
+        },
+      });
       throw new Error('Registration fail');
     }
 
@@ -115,23 +76,32 @@ export class FacadeService {
     email: string,
     maxAttempts = 10
   ): Promise<Account> {
-    logger.log(`Verify max attempts: ${maxAttempts}`);
-    const verificationCode = await multipleAttempts<string>(
-      () => this.emailService.findVerificationCodeInEmail(email),
+    const attemptInterval = 2000;
+    this.logger.info(
+      `Attempt ${maxAttempts} times (wait ${attemptInterval}s) to verify account`,
       {
-        isResolveValueValid: result => !!result,
-        attempt: maxAttempts,
-        interval: 2000,
+        ...this.loggerInfo,
+        meta: {
+          email,
+        },
       }
     );
+    const verificationCode = await this.apiService.multiplePromiseAttempts<
+      string
+    >(() => this.emailService.findVerificationCodeInEmail(email), {
+      isResolveValueValid: result => !!result,
+      attempt: maxAttempts,
+      interval: attemptInterval,
+    });
 
     if (!verificationCode) {
+      this.logger.error(`Get verification code fail for ${email}`, {
+        ...this.loggerInfo,
+      });
       throw new Error('Get verification code fail');
     }
 
-    logger.log('Start verifying:');
     const verifyResponse = await this.accountService.verify(verificationCode);
-    logger.log(`Account id: ${verifyResponse.id}`);
     return verifyResponse;
   }
 
@@ -151,9 +121,14 @@ export class FacadeService {
       account.accessToken
     );
     if (!voucher) {
+      this.logger.error(`Lock in fail with ${account.email} for ${fuelType}`, {
+        ...this.loggerInfo,
+        meta: {
+          deviceId: this.ctx.deviceId,
+        },
+      });
       throw new Error('Lock in fail');
     }
-    logger.log(`Voucher code: ${voucher.code}`);
 
     return voucher;
   }
@@ -164,13 +139,21 @@ export class FacadeService {
     lng: number
   ): Promise<AccountAndVoucher> {
     // register a new account
-    logger.log('1. Account registration:');
+    this.logger.info('Account registration', {
+      ...this.loggerInfo,
+      meta: {
+        fuelType,
+      },
+    });
     const registerData = await this.registerAccount();
-    logger.log(`Email: ${registerData.email}`);
-    logger.log(`Password: ${registerData.password}`);
 
     // verify account
-    logger.log('2. Verify account:');
+    this.logger.info('Verify account:', {
+      ...this.loggerInfo,
+      meta: {
+        email: registerData.email,
+      },
+    });
     const account = await this.verifyAccount(registerData.email);
 
     await this.dbService.addNewUser({
@@ -184,7 +167,13 @@ export class FacadeService {
     });
 
     // lock in
-    logger.log('3. Lock in voucher:');
+    this.logger.info('Lock in voucher:', {
+      ...this.loggerInfo,
+      meta: {
+        email: account.email,
+        fuelType,
+      },
+    });
     const voucher = await this.lockInWithExistingAccount(
       account,
       fuelType,
@@ -211,13 +200,19 @@ export class FacadeService {
       FirebaseFirestore.DocumentData
     >
   ): Promise<DbVoucher> {
-    const dbVoucher = voucherDoc.data();
+    const dbVoucher = voucherDoc.data() as DbVoucher;
     const voucherId = dbVoucher.id;
     const voucherStatus = dbVoucher.status;
-    logger.log(`Existing voucher status: ${voucherStatus}`);
+    this.logger.info(`Refreshing voucher: ${voucherId}`, {
+      ...this.loggerInfo,
+      meta: {
+        email: dbVoucher.email,
+        status: dbVoucher.status,
+        expiredAt: dbVoucher.expiredAt,
+      },
+    });
     const email = dbVoucher.email;
     // get account
-    logger.log(`Get account info for: ${email}`);
     const userSnapshot = await this.dbService.getUserByEmail(email);
     const password = userSnapshot.docs[0].get('password');
     // login account
@@ -233,16 +228,30 @@ export class FacadeService {
       deviceSecretToken,
       accessToken
     );
-    logger.log(`New voucher status: ${refreshedVoucher.status}`);
+    this.logger.info(`Voucher refreshed: ${voucherId}`, {
+      ...this.loggerInfo,
+      meta: {
+        email: dbVoucher.email,
+        status: refreshedVoucher.status,
+        expiredAt: refreshedVoucher.expiredAt,
+      },
+    });
     const needUpdate = refreshedVoucher.status !== voucherStatus;
     if (needUpdate) {
-      logger.log('Update new voucher status to DB');
+      this.logger.info('Update new voucher status to DB', {
+        ...this.loggerInfo,
+        meta: refreshedVoucher,
+      });
       await voucherDoc.ref.set({ status: refreshedVoucher.status });
     } else {
-      logger.log('No voucher status update required');
+      this.logger.info('No voucher status update required', {
+        ...this.loggerInfo,
+        meta: {
+          voucherId,
+        },
+      });
     }
     // logout account
-    logger.log(`Start logout: ${email}`);
     await this.accountService.logout(deviceSecretToken, accessToken);
     return {
       ...refreshedVoucher,
@@ -250,7 +259,7 @@ export class FacadeService {
     };
   }
 
-  private async getValidVouchers(
+  private async getValidVouchersForFuelType(
     fuelType: FuelType,
     price: number,
     limit: number
@@ -260,7 +269,13 @@ export class FacadeService {
       price,
       limit
     );
-    logger.log(`Found ${voucherDocs.length} vouchers in DB.`);
+    this.logger.info(`Found ${voucherDocs.length} vouchers in DB.`, {
+      ...this.loggerInfo,
+      meta: {
+        fuelType,
+        price,
+      },
+    });
     const validVouchers: DbVoucher[] = [];
     // for-of can keep the sequence of await in loop
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
@@ -270,8 +285,16 @@ export class FacadeService {
         validVouchers.push(refreshedDbVoucher);
       }
     }
-    logger.log(
-      `After refresh, only ${validVouchers.length} vouchers are still valid.`
+    this.logger.info(
+      `After refresh, only ${validVouchers.length} vouchers are still valid.`,
+      {
+        ...this.loggerInfo,
+        meta: {
+          fuelType,
+          price,
+          vouchers: validVouchers,
+        },
+      }
     );
     return validVouchers;
   }
@@ -289,10 +312,30 @@ export class FacadeService {
       .filter(userDoc => !blacklist[userDoc.get('email')])
       .map(userDoc => userDoc.data() as DbUser);
 
+    this.logger.info(
+      `Found ${dbUsers.length} available users to lock ${fuelType}`,
+      {
+        ...this.loggerInfo,
+        meta: {
+          users: dbUsers,
+        },
+      }
+    );
+
     for (const dbUser of dbUsers) {
       // check if this user still has active voucher attached
       const voucherSnapshot = await this.dbService.getVouchersByEmail(
         dbUser.email
+      );
+      this.logger.info(
+        `Found ${voucherSnapshot.docs.length} vouchers attached to ${dbUser.email}`,
+        {
+          ...this.loggerInfo,
+          meta: {
+            fuelType,
+            vouchers: voucherSnapshot.docs.map(doc => doc.data()),
+          },
+        }
       );
       const activeVouchers = [];
       for (const voucherDoc of voucherSnapshot.docs) {
@@ -301,6 +344,16 @@ export class FacadeService {
           activeVouchers.push(voucherDoc);
         }
       }
+      this.logger.info(
+        `After refresh, ${activeVouchers.length} vouchers attached to ${dbUser.email} are still active`,
+        {
+          ...this.loggerInfo,
+          meta: {
+            fuelType,
+            vouchers: activeVouchers.map(doc => doc.data()),
+          },
+        }
+      );
       if (activeVouchers.length === 0) {
         availableUsers.push(dbUser);
       }
@@ -309,6 +362,15 @@ export class FacadeService {
         break;
       }
     }
+    this.logger.info(
+      `Only ${availableUsers.length} user are available to lock ${fuelType}`,
+      {
+        ...this.loggerInfo,
+        meta: {
+          users: availableUsers,
+        },
+      }
+    );
     return availableUsers;
   }
 
@@ -327,7 +389,15 @@ export class FacadeService {
     const newUserCount = lockCount - availableUsers.length;
     let result: AccountAndVoucher;
     // use existing user to lock
-    logger.log(`Use ${availableUsers.length} existing users to lock.`);
+    this.logger.info(
+      `Use ${availableUsers.length} existing users to lock ${fuelType}.`,
+      {
+        ...this.loggerInfo,
+        meta: {
+          users: availableUsers,
+        },
+      }
+    );
     for (const user of availableUsers) {
       this.switchToNewDeviceId();
       const account = await this.accountService.login(
@@ -348,7 +418,15 @@ export class FacadeService {
         voucher,
       };
     }
-    logger.log(`Register ${newUserCount} new users to lock.`);
+    this.logger.info(
+      `Need to register ${newUserCount} new users to loc ${fuelType}.`,
+      {
+        ...this.loggerInfo,
+        meta: {
+          users: availableUsers,
+        },
+      }
+    );
     if (newUserCount > 0) {
       // create new user to lock in
       const range = new Array(newUserCount).map((_, idx) => idx);
@@ -377,22 +455,45 @@ export class FacadeService {
         fuelPriceSnapshot.docs[0].get('updatedTime') < updated;
 
       if (!shouldUpdate) {
-        logger.log(`${fuelType}: no need to update to DB`);
+        this.logger.info(`${fuelType}: no need to update to DB`, {
+          ...this.loggerInfo,
+          meta: {
+            lastUpdated:
+              fuelPriceSnapshot.docs.length > 0
+                ? fuelPriceSnapshot.docs[0].get('updatedTime')
+                : 'no record in DB',
+            newUpdated: updated,
+          },
+        });
         continue;
       }
 
-      logger.log(`${fuelType}: new price found`);
       const fuelPrice = fuelPrices[fuelType];
-      logger.log(`Check if we need to lock more voucher:`);
+      this.logger.info(`${fuelType}: new update found`, {
+        ...this.loggerInfo,
+        meta: {
+          price: fuelPrice.price,
+        },
+      });
+
+      this.logger.info(`Check if we need to lock more voucher:`, {
+        ...this.loggerInfo,
+        meta: {
+          fuelType,
+        },
+      });
       // make sure we have 5 vouchers maximum
       const maxVoucherCount = 5;
-      const validDbVouchers = await this.getValidVouchers(
+      const validDbVouchers = await this.getValidVouchersForFuelType(
         fuelType,
         fuelPrice.price,
         maxVoucherCount
       );
-      logger.log(
-        `Valid vouchers for: ${fuelType} - ${validDbVouchers.length}/${maxVoucherCount}`
+      this.logger.info(
+        `Valid vouchers for: ${fuelType} - ${validDbVouchers.length}/${maxVoucherCount}`,
+        {
+          ...this.loggerInfo,
+        }
       );
       const needCreateVoucherCount = maxVoucherCount - validDbVouchers.length;
       if (needCreateVoucherCount > 0) {
@@ -404,14 +505,17 @@ export class FacadeService {
           {} as KnownUnavailableEmails
         );
         /**
-         * Only lock 2 vouchers to prevent potential rate limit (HTTP 412)
+         * Only lock 1 vouchers to prevent potential rate limit (HTTP 412)
          */
+        this.logger.info(`Locking in 1 voucher for ${fuelType}`, {
+          ...this.loggerInfo,
+        });
         await this.lockInWithExistingOrNewUser(
           fuelType,
           knownUnavailableEmails,
           fuelPrice.lat,
           fuelPrice.lng,
-          2
+          1
         );
       }
       // write this new price to DB
@@ -429,23 +533,35 @@ export class FacadeService {
     lat: number,
     lng: number
   ): Promise<AccountAndVoucher> {
-    logger.log(`Trying to get a voucher for: ${fuelType} - ${price}c/L`);
+    this.logger.info(`Trying to get a voucher for: ${fuelType} - ${price}c/L`, {
+      ...this.loggerInfo,
+    });
     const voucherDocs = await this.dbService.getValidVouchersByFuelType(
       fuelType,
       price,
       1
     );
     if (voucherDocs.length > 0) {
-      logger.log(`Found one voucher in DB: ${voucherDocs[0].get('code')}`);
-      logger.log('Is this voucher still valid against API?');
+      this.logger.info(`Found one voucher in DB: ${voucherDocs[0].get('id')}`, {
+        ...this.loggerInfo,
+        meta: {
+          fuelType,
+        },
+      });
       const refreshedDbVoucher = await this.refreshVoucher(voucherDocs[0]);
       if (refreshedDbVoucher.status === 0) {
-        logger.log(`Voucher ${voucherDocs[0].get('code')} is valid, return!`);
         const userSnapshot = await this.dbService.getUserByEmail(
           voucherDocs[0].get('email')
         );
         const user = userSnapshot.docs[0].data() as DbUser;
         const { email, ...voucher } = refreshedDbVoucher;
+        this.logger.info(`Voucher ${voucher.id} is valid, return!`, {
+          ...this.loggerInfo,
+          meta: {
+            email,
+            voucher,
+          },
+        });
         return {
           account: {
             email,
@@ -455,7 +571,15 @@ export class FacadeService {
         };
       }
     }
-    logger.log('No voucher available in DB for this price, lock a new one!');
+    this.logger.info(
+      'No voucher available in DB for this price, lock a new one!',
+      {
+        ...this.loggerInfo,
+        meta: {
+          fuelType,
+        },
+      }
+    );
     return this.lockInWithExistingOrNewUser(fuelType, {}, lat, lng, 1);
   }
 }

@@ -1,14 +1,13 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { CONTEXT } from '@nestjs/graphql';
 
-import { request } from '../utils/request';
-import { DEVICE_NAME, ANDROID_VERSION } from '../utils/constant';
+import { DEVICE_NAME, ANDROID_VERSION } from '../../../utils/constant';
 import { GqlContext } from '../../gql.context';
+import { ApiService } from '../../../api/api.service';
+import { WINSTON_LOGGER, Logger } from '../../../logger/winston-logger';
 
 import { Account } from './account.model';
-
-const logger = new Logger('AccountService');
 
 interface LoginOrVerifyResponse {
   DeviceSecretToken: string;
@@ -19,7 +18,15 @@ interface LoginOrVerifyResponse {
 
 @Injectable()
 export class AccountService {
-  constructor(@Inject(CONTEXT) private readonly ctx: GqlContext) {}
+  private loggerInfo = {
+    emitter: 'AccountService',
+  };
+
+  constructor(
+    @Inject(CONTEXT) private readonly ctx: GqlContext,
+    @Inject(WINSTON_LOGGER) private logger: Logger,
+    private apiService: ApiService
+  ) {}
 
   private transformLoginOrVerifyResponse(
     response: AxiosResponse<LoginOrVerifyResponse>
@@ -35,8 +42,10 @@ export class AccountService {
   }
 
   async login(email: string, password: string): Promise<Account> {
-    logger.log(`Login with: ${email}`);
-    const response = await request({
+    this.logger.debug(`Login with: ${email}`, {
+      ...this.loggerInfo,
+    });
+    const response = await this.apiService.elevenRequest({
       url: 'account/login',
       method: 'POST',
       data: {
@@ -47,7 +56,6 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
-    logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);
   }
@@ -56,16 +64,19 @@ export class AccountService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<boolean> {
-    logger.log('Logout:');
-    const response = await request({
+    this.logger.debug('Logout:', {
+      ...this.loggerInfo,
+      meta: {
+        deviceSecretToken,
+      },
+    });
+    const response = await await this.apiService.elevenRequest({
       url: 'account/logout',
       method: 'POST',
       deviceSecretToken,
       accessToken,
       deviceId: this.ctx.deviceId,
     });
-
-    logger.log(response.data);
 
     return response.data === '';
   }
@@ -78,7 +89,6 @@ export class AccountService {
     phone: string,
     dobTimestamp: string
   ): Promise<boolean> {
-    logger.log(`Register new account:`);
     const data = {
       EmailAddress: email,
       FirstName: firstName,
@@ -89,22 +99,28 @@ export class AccountService {
       OptInForPromotions: false,
       OptInForSms: false,
     };
-    logger.log(data);
-    logger.log(`Device ID: ${this.ctx.deviceId}`);
-    const response = await request({
+    this.logger.debug('Register new account', {
+      ...this.loggerInfo,
+      meta: {
+        data,
+        deviceId: this.ctx.deviceId,
+      },
+    });
+    const response = await this.apiService.elevenRequest({
       url: 'account/register',
       method: 'POST',
       data,
       deviceId: this.ctx.deviceId,
     });
-    logger.log(response.data);
 
     return response.data === '';
   }
 
   async verify(verificationCode: string): Promise<Account> {
-    logger.log(`Verify with: ${verificationCode}`);
-    const response = await request({
+    this.logger.debug(`Verify with: ${verificationCode}`, {
+      ...this.loggerInfo,
+    });
+    const response = await this.apiService.elevenRequest({
       url: 'account/verify',
       method: 'POST',
       data: {
@@ -114,8 +130,6 @@ export class AccountService {
       },
       deviceId: this.ctx.deviceId,
     });
-
-    logger.log(response.data);
 
     return this.transformLoginOrVerifyResponse(response);
   }

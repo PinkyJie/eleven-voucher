@@ -1,3 +1,5 @@
 export const environment = {
-  production: false
+  production: false,
+  readonlyFileSystem: false,
+  port: 3333,
 };

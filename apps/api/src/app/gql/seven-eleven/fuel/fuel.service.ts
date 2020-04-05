@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import axios from 'axios';
+import { Injectable, Inject } from '@nestjs/common';
+
+import { ApiService } from '../../../api/api.service';
+import { WINSTON_LOGGER, Logger } from '../../../logger/winston-logger';
 
 import { Fuel, FuelPrice } from './fuel.model';
-
-const logger = new Logger('FuelService');
 
 interface RegionResponse {
   prices: FuelPrice[];
@@ -32,11 +32,24 @@ interface FuelResponse {
 
 @Injectable()
 export class FuelService {
+  private loggerInfo = {
+    emitter: 'FuelService',
+  };
   private url = 'https://projectzerothree.info/api.php?format=json';
 
+  constructor(
+    @Inject(WINSTON_LOGGER) private logger: Logger,
+    private apiService: ApiService
+  ) {}
+
   async getFuelPrices(): Promise<Fuel> {
-    logger.log('Fetch all fuel prices');
-    const response = await axios.get(this.url);
+    this.logger.debug('Fetch all fuel prices', {
+      ...this.loggerInfo,
+    });
+    const response = await this.apiService.request({
+      url: this.url,
+      method: 'GET',
+    });
     const { regions, updated } = response.data as FuelResponse;
     const allRegion = regions.find(region => region.region === 'All');
     const fuelPrices = allRegion.prices.reduce((result, price) => {

@@ -1,17 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import admin from 'firebase-admin';
 
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
+import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
 
 import { DbUser, DbFuelPrice, DbVoucher } from './db.model';
 
-const logger = new Logger('DbService');
-
 @Injectable()
 export class DbService {
-  db: FirebaseFirestore.Firestore;
+  private loggerInfo = {
+    emitter: 'DbService',
+  };
+  private db: FirebaseFirestore.Firestore;
 
-  constructor() {
+  constructor(@Inject(WINSTON_LOGGER) private logger: Logger) {
     admin.initializeApp({
       credential: admin.credential.applicationDefault(),
     });
@@ -24,24 +26,39 @@ export class DbService {
 
   async addNewUser(user: DbUser) {
     const userRef = this.db.collection('users');
-    logger.log('Add new user to DB:');
-    logger.log(user);
+    this.logger.debug('Add new user to DB', {
+      ...this.loggerInfo,
+      meta: {
+        user,
+      },
+    });
     await userRef.add({ ...user, timestamp: this.getServerTimestamp() });
   }
 
   async getLatestFuelPriceRecord(fuelType: FuelType) {
     const fuelPriceRef = this.db.collection('fuel_prices');
-    return fuelPriceRef
+    const result = await fuelPriceRef
       .where('type', '==', fuelType)
       .orderBy('updatedTime', 'desc')
       .limit(1)
       .get();
+    this.logger.debug(`Query last updated fuel price for ${fuelType} from DB`, {
+      ...this.loggerInfo,
+      meta: {
+        db: result.docs.map(doc => doc.data()),
+      },
+    });
+    return result;
   }
 
   async addNewFuelPrice(fuelPrice: DbFuelPrice) {
     const fuelPriceRef = this.db.collection('fuel_prices');
-    logger.log('Add new fuel price to DB:');
-    logger.log(fuelPrice);
+    this.logger.debug('Add new fuel price to DB', {
+      ...this.loggerInfo,
+      meta: {
+        fuelPrice,
+      },
+    });
     await fuelPriceRef.add({
       ...fuelPrice,
       timestamp: this.getServerTimestamp(),
@@ -50,32 +67,51 @@ export class DbService {
 
   async addNewVoucher(voucher: DbVoucher) {
     const voucherRef = this.db.collection('vouchers');
-    logger.log('Add new voucher to DB:');
-    logger.log(voucher);
+    this.logger.debug('Add new voucher to DB', {
+      ...this.loggerInfo,
+      meta: {
+        voucher,
+      },
+    });
     await voucherRef.add({ ...voucher, timestamp: this.getServerTimestamp() });
   }
 
   async getUserByEmail(email: string) {
     const userRef = this.db.collection('users');
-    return userRef
+    const result = await userRef
       .where('email', '==', email)
       .limit(1)
       .get();
+    this.logger.debug(`Query the user record for email ${email} from DB`, {
+      ...this.loggerInfo,
+      meta: { db: result.docs.map(doc => doc.data()) },
+    });
+    return result;
   }
 
   async getUserByFuelType(fuelType: FuelType) {
     const userRef = this.db.collection('users');
-    return userRef.where('fuelType', '==', fuelType).get();
+    const result = await userRef.where('fuelType', '==', fuelType).get();
+    this.logger.debug(`Query all user records for fuel ${fuelType}`, {
+      ...this.loggerInfo,
+      meta: { db: result.docs.map(doc => doc.data()) },
+    });
+    return result;
   }
 
   async getVouchersByEmail(email: string) {
     const voucherRef = this.db.collection('vouchers');
     const now = Math.floor(new Date().getTime() / 1000);
-    return voucherRef
+    const result = await voucherRef
       .where('email', '==', email)
       .where('status', '==', 0)
       .where('expiredAt', '>', now)
       .get();
+    this.logger.debug(`Query all vouchers attached to email ${email} from DB`, {
+      ...this.loggerInfo,
+      meta: { db: result.docs.map(doc => doc.data()) },
+    });
+    return result;
   }
 
   async getValidVouchersByFuelType(
@@ -91,8 +127,16 @@ export class DbService {
       .where('expiredAt', '>', now)
       .orderBy('expiredAt')
       .get();
-    return voucherSnapshot.docs
+    const result = voucherSnapshot.docs
       .filter(voucherDoc => voucherDoc.get('fuelPrice') <= price)
       .slice(0, limit);
+    this.logger.debug(
+      `Query all valid vouchers for fuel ${fuelType} - ${price}c/L from DB`,
+      {
+        ...this.loggerInfo,
+        meta: { db: result.map(doc => doc.data()) },
+      }
+    );
+    return result;
   }
 }

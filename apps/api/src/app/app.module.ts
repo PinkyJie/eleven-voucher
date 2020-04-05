@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 
 import { GqlModule } from './gql/gql.module';
-import { DbModule } from './db/db.module';
+import { LoggerModule } from './logger/logger.module';
+import { ApiModule } from './api/api.module';
 
 @Module({
-  imports: [GqlModule, DbModule],
+  imports: [GqlModule, LoggerModule, ApiModule],
 })
 export class AppModule {}
