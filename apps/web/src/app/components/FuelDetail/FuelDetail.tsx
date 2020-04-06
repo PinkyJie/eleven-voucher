@@ -133,7 +133,11 @@ export const FuelDetail = () => {
     <Message icon info attached>
       <Icon name="barcode" />
       <Message.Content>
-        <Message.Header>Got you covered</Message.Header>
+        <Message.Header>
+          {data.getMeAVoucher.voucher?.fuelPrice < prices[fuelType].price
+            ? 'Magic! Lower than lower'
+            : 'Got you covered'}
+        </Message.Header>
         Enjoy your voucher for &nbsp;
         <Label color="teal" horizontal>
           {fuelType} - ${data.getMeAVoucher.voucher?.fuelPrice} c/L
