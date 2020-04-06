@@ -5,6 +5,8 @@ import {
   Logger as WinstonLogger,
 } from 'winston';
 
+import { environment } from '../../environments/environment';
+
 export const WINSTON_LOGGER = Symbol('WinstonLogger');
 
 const customFormatter = format.printf(
@@ -15,14 +17,18 @@ const customFormatter = format.printf(
   }
 );
 
+const googleLogFormatter = format(info => {
+  info.severity = info.level;
+  delete info.level;
+  return info;
+});
+
 export type Logger = WinstonLogger;
 
 export const winstonLogger = createLogger({
   level: 'debug',
   transports: [new transports.Console()],
-  format: format.combine(
-    format.colorize(),
-    format.timestamp(),
-    customFormatter
-  ),
+  format: environment.production
+    ? format.combine(googleLogFormatter(), format.timestamp(), format.json())
+    : format.combine(format.colorize(), format.timestamp(), customFormatter),
 });
