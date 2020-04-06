@@ -199,7 +199,13 @@ export class FacadeService {
     voucherDoc: FirebaseFirestore.QueryDocumentSnapshot<
       FirebaseFirestore.DocumentData
     >
-  ): Promise<DbVoucher> {
+  ): Promise<{
+    account: {
+      email: string;
+      password: string;
+    };
+    refreshedDbVoucher: DbVoucher;
+  }> {
     const dbVoucher = voucherDoc.data() as DbVoucher;
     const voucherId = dbVoucher.id;
     const voucherStatus = dbVoucher.status;
@@ -254,8 +260,14 @@ export class FacadeService {
     // logout account
     await this.accountService.logout(deviceSecretToken, accessToken);
     return {
-      ...refreshedVoucher,
-      email,
+      account: {
+        email,
+        password,
+      },
+      refreshedDbVoucher: {
+        ...refreshedVoucher,
+        email,
+      },
     };
   }
 
@@ -280,7 +292,7 @@ export class FacadeService {
     // for-of can keep the sequence of await in loop
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
     for (const voucherDoc of voucherDocs) {
-      const refreshedDbVoucher = await this.refreshVoucher(voucherDoc);
+      const { refreshedDbVoucher } = await this.refreshVoucher(voucherDoc);
       if (refreshedDbVoucher.status === VoucherStatus.Active) {
         validVouchers.push(refreshedDbVoucher);
       }
@@ -550,12 +562,10 @@ export class FacadeService {
           fuelType,
         },
       });
-      const refreshedDbVoucher = await this.refreshVoucher(voucherDocs[0]);
+      const { account, refreshedDbVoucher } = await this.refreshVoucher(
+        voucherDocs[0]
+      );
       if (refreshedDbVoucher.status === VoucherStatus.Active) {
-        const userSnapshot = await this.dbService.getUserByEmail(
-          voucherDocs[0].get('email')
-        );
-        const user = userSnapshot.data() as DbUser;
         const { email, ...voucher } = refreshedDbVoucher;
         this.logger.info(`Voucher ${voucher.id} is valid, return!`, {
           ...this.loggerInfo,
@@ -567,7 +577,7 @@ export class FacadeService {
         return {
           account: {
             email,
-            password: user.password,
+            password: account.password,
           },
           voucher,
         };

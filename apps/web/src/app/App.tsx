@@ -18,7 +18,7 @@ const StyledHeader = styled(Header)`
 `;
 
 const StyledMain = styled.main`
-  padding: 2em;
+  padding: 2.5em;
 `;
 
 export class App extends Component {

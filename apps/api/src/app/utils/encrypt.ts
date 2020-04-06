@@ -1,3 +1,8 @@
+/**
+ * Credits to freyta/7Eleven-Python https://github.com/freyta/7Eleven-Python,
+ * this is just a node.js re-implementation.
+ */
+
 import crypto from 'crypto';
 
 import { v4 as uuidv4 } from 'uuid';

@@ -20,7 +20,7 @@ export class ApiService {
     // log http request/response
     axios.interceptors.request.use(
       config => {
-        this.logger.http('Start request', {
+        this.logger.debug(`Start request ${config.url}`, {
           ...this.loggerInfo,
           meta: {
             url: config.url,
@@ -41,7 +41,7 @@ export class ApiService {
 
     axios.interceptors.response.use(
       response => {
-        this.logger.http('Request success', {
+        this.logger.debug(`Request success ${response.config.url}`, {
           ...this.loggerInfo,
           meta: {
             url: response.config.url,
@@ -66,6 +66,10 @@ export class ApiService {
     return axios(config);
   }
 
+  /**
+   * Credits to freyta/7Eleven-Python https://github.com/freyta/7Eleven-Python,
+   * this is just a node.js re-implementation.
+   */
   async elevenRequest(options: {
     url: string;
     method: Method;

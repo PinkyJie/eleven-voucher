@@ -64,7 +64,7 @@ export class AccountService {
     deviceSecretToken: string,
     accessToken: string
   ): Promise<boolean> {
-    this.logger.debug('Logout:', {
+    this.logger.debug('Logout', {
       ...this.loggerInfo,
       meta: {
         deviceSecretToken,
