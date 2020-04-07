@@ -1,4 +1,5 @@
 import faker from 'faker';
+import passwordGenerator from 'generate-password';
 
 function getPhoneNumber() {
   const phoneNumber = faker.phone.phoneNumberFormat();
@@ -14,7 +15,13 @@ export function getFakeUser() {
   faker.locale = 'en_AU';
 
   const email = `${faker.internet.userName()}${emailDomains[randomIdx]}`;
-  const password = faker.internet.password();
+  // password must include numbers/lowercase/uppercase, otherwise HTTP 412 returns
+  const password = passwordGenerator.generate({
+    length: 10,
+    numbers: true,
+    lowercase: true,
+    uppercase: true,
+  });
 
   return {
     email,

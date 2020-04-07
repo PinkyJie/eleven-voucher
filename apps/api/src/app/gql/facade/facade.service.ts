@@ -139,11 +139,8 @@ export class FacadeService {
     lng: number
   ): Promise<AccountAndVoucher> {
     // register a new account
-    this.logger.info('Account registration', {
+    this.logger.info(`Account registration for ${fuelType}`, {
       ...this.loggerInfo,
-      meta: {
-        fuelType,
-      },
     });
     const registerData = await this.registerAccount();
 
@@ -443,7 +440,7 @@ export class FacadeService {
     );
     if (newUserCount > 0) {
       // create new user to lock in
-      const range = new Array(newUserCount).map((_, idx) => idx);
+      const range = [...Array(newUserCount).keys()];
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (const i of range) {
         this.switchToNewDeviceId();
@@ -518,9 +515,7 @@ export class FacadeService {
           },
           {} as KnownUnavailableEmails
         );
-        /**
-         * Only lock 1 vouchers to prevent potential rate limit (HTTP 412)
-         */
+        // Only lock 1 vouchers to prevent potential rate limit
         this.logger.info(`Locking in 1 voucher for ${fuelType}`, {
           ...this.loggerInfo,
         });

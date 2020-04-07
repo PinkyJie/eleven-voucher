@@ -47,6 +47,7 @@
     "document-register-element": "1.13.1",
     "faker": "^4.1.0",
     "firebase-admin": "^8.10.0",
+    "generate-password": "^1.5.1",
     "graphql": "^14.6.0",
     "graphql-tools": "^4.0.7",
     "react": "16.13.1",
