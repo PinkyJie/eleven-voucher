@@ -4,6 +4,7 @@ import * as express from 'express';
 import { Logger } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
+import { environment } from './environments/environment';
 
 const logger = new Logger('Main');
 
@@ -11,7 +12,7 @@ const server = express();
 
 server.get('/', (req, res) => res.send('ok'));
 
-const port = process.env.PORT || 3333;
+const port = environment.port;
 
 export const createNestServer = async expressInstance => {
   const app = await NestFactory.create(

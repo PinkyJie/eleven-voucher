@@ -493,8 +493,8 @@ export class FacadeService {
           fuelType,
         },
       });
-      // make sure we have 5 vouchers maximum
-      const maxVoucherCount = 5;
+      // make sure we have enough vouchers maximum
+      const maxVoucherCount = 3;
       const validDbVouchers = await this.getValidVouchersForFuelType(
         fuelType,
         fuelPrice.price,
