@@ -26,6 +26,7 @@ export class ApiService {
             url: config.url,
             method: config.method,
             body: config.params || config.data,
+            headers: config.headers,
           },
         });
         return config;

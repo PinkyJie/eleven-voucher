@@ -66,13 +66,23 @@ export class VoucherService {
   ) {}
 
   private transformVoucherResponse(voucherResponse: VoucherResponse): Voucher {
+    const fuelType = fuelTypes.find(
+      type => type.value === voucherResponse.FuelGradeModel
+    );
+    if (!fuelType) {
+      this.logger.error('Invalid fuel type', {
+        ...this.loggerInfo,
+        meta: {
+          voucherResponse,
+        },
+      });
+      throw new Error('Invalid fuel type');
+    }
     return {
       id: voucherResponse.Id,
       status: voucherResponse.Status,
       code: voucherResponse.CouponCode,
-      fuelType: fuelTypes.find(
-        type => type.value === voucherResponse.FuelGradeModel
-      ).label,
+      fuelType: fuelType.label,
       fuelPrice: voucherResponse.CentsPerLitre,
       liters: voucherResponse.TotalLitres,
       storeId: voucherResponse.StoreId,
