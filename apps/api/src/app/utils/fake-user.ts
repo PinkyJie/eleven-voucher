@@ -16,12 +16,16 @@ export function getFakeUser() {
 
   const email = `${faker.internet.userName()}${emailDomains[randomIdx]}`;
   // password must include numbers/lowercase/uppercase, otherwise HTTP 412 returns
-  const password = passwordGenerator.generate({
-    length: 10,
-    numbers: true,
-    lowercase: true,
-    uppercase: true,
-  });
+  const passwordRegEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  let password = '';
+  while (!password.match(passwordRegEx)) {
+    password = passwordGenerator.generate({
+      length: 10,
+      numbers: true,
+      lowercase: true,
+      uppercase: true,
+    });
+  }
 
   return {
     email,

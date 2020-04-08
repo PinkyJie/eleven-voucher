@@ -70,7 +70,7 @@ export class AccountService {
         deviceSecretToken,
       },
     });
-    const response = await await this.apiService.elevenRequest({
+    const response = await this.apiService.elevenRequest({
       url: 'account/logout',
       method: 'POST',
       deviceSecretToken,
