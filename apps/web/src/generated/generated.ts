@@ -161,6 +161,8 @@ export type Mutation = {
   getMeAVoucher: AccountAndVoucher;
   /** Refresh all fuel prices. */
   refreshAllFuelPrices: Scalars['Boolean'];
+  /** Refresh the voucher with email/password. */
+  refreshVoucher: AccountAndVoucher;
 };
 
 
@@ -191,6 +193,11 @@ export type MutationLockInVoucherArgs = {
 
 export type MutationGetMeAVoucherArgs = {
   getMeAVoucherInput: GetMeAVoucherInput;
+};
+
+
+export type MutationRefreshVoucherArgs = {
+  refreshVoucherInput: RefreshVoucherInput;
 };
 
 export type NewAccount = {
@@ -248,6 +255,15 @@ export type QueryFindVerificationCodeInEmailArgs = {
   email: Scalars['String'];
 };
 
+export type RefreshVoucherInput = {
+  /** The account email address */
+  email: Scalars['String'];
+  /** The account password */
+  password: Scalars['String'];
+  /** The id of the voucher */
+  voucherId: Scalars['String'];
+};
+
 export type RegisterAccountInput = {
   /** Email address */
   email: Scalars['String'];
@@ -285,6 +301,17 @@ export type Voucher = {
   expiredAt: Scalars['Int'];
 };
 
+export type AccountAndVoucherFragment = (
+  { __typename?: 'AccountAndVoucher' }
+  & { account: (
+    { __typename?: 'NewAccount' }
+    & Pick<NewAccount, 'email' | 'password'>
+  ), voucher?: Maybe<(
+    { __typename?: 'Voucher' }
+    & Pick<Voucher, 'id' | 'status' | 'code' | 'fuelType' | 'fuelPrice' | 'expiredAt'>
+  )> }
+);
+
 export type GetMeAVoucherMutationVariables = {
   getMeAVoucherInput: GetMeAVoucherInput;
 };
@@ -294,13 +321,20 @@ export type GetMeAVoucherMutation = (
   { __typename?: 'Mutation' }
   & { getMeAVoucher: (
     { __typename?: 'AccountAndVoucher' }
-    & { account: (
-      { __typename?: 'NewAccount' }
-      & Pick<NewAccount, 'email' | 'password'>
-    ), voucher?: Maybe<(
-      { __typename?: 'Voucher' }
-      & Pick<Voucher, 'id' | 'status' | 'code' | 'fuelType' | 'fuelPrice' | 'liters' | 'storeId' | 'createdAt' | 'expiredAt'>
-    )> }
+    & AccountAndVoucherFragment
+  ) }
+);
+
+export type RefreshVoucherMutationVariables = {
+  refreshVoucherInput: RefreshVoucherInput;
+};
+
+
+export type RefreshVoucherMutation = (
+  { __typename?: 'Mutation' }
+  & { refreshVoucher: (
+    { __typename?: 'AccountAndVoucher' }
+    & AccountAndVoucherFragment
   ) }
 );
 

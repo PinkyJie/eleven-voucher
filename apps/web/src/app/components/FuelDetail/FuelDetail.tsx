@@ -12,7 +12,11 @@ import {
   Modal,
   Placeholder,
 } from 'semantic-ui-react';
-import { useMutation } from '@apollo/client';
+import {
+  useMutation,
+  MutationFunctionOptions,
+  FetchResult,
+} from '@apollo/client';
 import bwipjs from 'bwip-js';
 import { format } from 'date-fns';
 
@@ -20,10 +24,15 @@ import {
   FuelType,
   GetMeAVoucherMutation,
   GetMeAVoucherMutationVariables,
+  RefreshVoucherMutation,
+  RefreshVoucherMutationVariables,
 } from '../../../generated/generated';
 import { FuelPriceContext } from '../../context';
 
-import GET_ME_A_VOUCHER_MUTATION from './FuelDetail.graphql';
+import {
+  GetMeAVoucher as GET_ME_A_VOUCHER_MUTATION,
+  RefreshVoucher as REFRESH_VOUCHER_MUTATION,
+} from './FuelDetail.graphql';
 
 const StyledFuelDetail = styled.div`
   margin: 1em 0;
@@ -31,6 +40,29 @@ const StyledFuelDetail = styled.div`
 
 const StyledCanvas = styled.canvas`
   max-width: 100%;
+`;
+
+const StyledRefreshContainer = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+`;
+
+const StyledRefreshOverlay = styled.div`
+  width: 100%;
+  height: 100%;
+  background-color: #eee;
+  opacity: 0.8;
+  position: absolute;
+`;
+
+const StyledRefreshButton = styled(Button)`
+  position: absolute;
+  align-self: center;
 `;
 
 export interface FuelDetailRouterParams {
@@ -49,6 +81,33 @@ function convertRouterParamsToFuelType(fuelTypeInRouter: string): FuelType {
   return fuelTypeMap[fuelTypeInRouter.toLowerCase()];
 }
 
+function pollRefreshedVoucher(
+  refreshVoucher: (
+    options?: MutationFunctionOptions<
+      RefreshVoucherMutation,
+      RefreshVoucherMutationVariables
+    >
+  ) => Promise<FetchResult<RefreshVoucherMutation>>,
+  email: string,
+  password: string,
+  voucherId: string
+) {
+  setTimeout(async () => {
+    const refreshedVoucher = await refreshVoucher({
+      variables: {
+        refreshVoucherInput: {
+          email: email,
+          password: password,
+          voucherId,
+        },
+      },
+    });
+    if (refreshedVoucher.data.refreshVoucher.voucher.status === 0) {
+      pollRefreshedVoucher(refreshVoucher, email, password, voucherId);
+    }
+  }, 5000);
+}
+
 export const FuelDetail = () => {
   const { fuelType: fuelTypeInRouter } = useParams<FuelDetailRouterParams>();
   const { prices } = useContext(FuelPriceContext);
@@ -58,6 +117,11 @@ export const FuelDetail = () => {
     GetMeAVoucherMutation,
     GetMeAVoucherMutationVariables
   >(GET_ME_A_VOUCHER_MUTATION);
+
+  const [refreshVoucher, { data: refreshedVoucher }] = useMutation<
+    RefreshVoucherMutation,
+    RefreshVoucherMutationVariables
+  >(REFRESH_VOUCHER_MUTATION);
 
   useEffect(() => {
     if (fuelType) {
@@ -76,11 +140,11 @@ export const FuelDetail = () => {
   }, [prices, fuelType, getMeAVoucher]);
 
   useEffect(() => {
-    const voucherCode = data?.getMeAVoucher.voucher?.code;
-    if (voucherCode) {
+    const { account, voucher } = data?.getMeAVoucher || {};
+    if (voucher?.code) {
       bwipjs.toCanvas('code', {
         bcid: 'code128',
-        text: voucherCode,
+        text: voucher.code,
         scaleX: 3,
         scaleY: 1,
         includetext: true,
@@ -88,8 +152,16 @@ export const FuelDetail = () => {
         textsize: 13,
         textyoffset: 5,
       });
+
+      // keep refreshing voucher in case it's used by someone elses
+      pollRefreshedVoucher(
+        refreshVoucher,
+        account.email,
+        account.password,
+        voucher.id
+      );
     }
-  }, [data]);
+  }, [data, refreshVoucher]);
 
   const invalidFuelMessage = (
     <Message icon negative attached>
@@ -123,7 +195,7 @@ export const FuelDetail = () => {
       <Dimmer active inverted>
         <Loader size="small">Loading</Loader>
       </Dimmer>
-      <Placeholder style={{ height: '100%', width: '100%' }}>
+      <Placeholder style={{ maxWidth: '100%' }}>
         <Placeholder.Image />
       </Placeholder>
     </Segment>
@@ -146,7 +218,7 @@ export const FuelDetail = () => {
         <Label color="teal" horizontal>
           {format(
             new Date(data.getMeAVoucher.voucher?.expiredAt * 1000),
-            'do MMMM yyyy'
+            'HH:mm:ss do MMMM yyyy'
           )}
         </Label>
       </Message.Content>
@@ -156,6 +228,30 @@ export const FuelDetail = () => {
   const voucherSegment = data && (
     <Segment attached textAlign="center">
       <StyledCanvas id="code" />
+      {(refreshedVoucher?.refreshVoucher.voucher?.status === 1 ||
+        refreshedVoucher?.refreshVoucher.voucher?.status === 2) && (
+        <StyledRefreshContainer>
+          <StyledRefreshOverlay />
+          <StyledRefreshButton
+            primary
+            onClick={() => {
+              const fuelPrice = prices[fuelType];
+              getMeAVoucher({
+                variables: {
+                  getMeAVoucherInput: {
+                    fuelType,
+                    fuelPrice: fuelPrice.price,
+                    latitude: fuelPrice.lat,
+                    longitude: fuelPrice.lng,
+                  },
+                },
+              });
+            }}
+          >
+            Expired! Click to refresh
+          </StyledRefreshButton>
+        </StyledRefreshContainer>
+      )}
     </Segment>
   );
 

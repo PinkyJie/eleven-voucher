@@ -1,9 +1,4 @@
-import {
-  createLogger,
-  transports,
-  format,
-  Logger as WinstonLogger,
-} from 'winston';
+import { createLogger, transports, format } from 'winston';
 
 import { environment } from '../../environments/environment';
 
@@ -23,7 +18,7 @@ const googleLogFormatter = format(info => {
   return info;
 });
 
-export type Logger = WinstonLogger;
+export { Logger } from 'winston';
 
 export const winstonLogger = createLogger({
   level: 'debug',

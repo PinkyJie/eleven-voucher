@@ -17,7 +17,7 @@ import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { getFakeUser } from '../../utils/fake-user';
 import { ApiService } from '../../api/api.service';
 
-import { AccountAndVoucher } from './facade.model';
+import { AccountAndVoucher, NewAccount } from './facade.model';
 
 interface KnownUnavailableEmails {
   [email: string]: boolean;
@@ -192,35 +192,12 @@ export class FacadeService {
     };
   }
 
-  private async refreshVoucher(
-    voucherDoc: FirebaseFirestore.QueryDocumentSnapshot<
-      FirebaseFirestore.DocumentData
-    >
-  ): Promise<{
-    account: {
-      email: string;
-      password: string;
-    };
-    refreshedDbVoucher: DbVoucher;
-  }> {
-    const dbVoucher = voucherDoc.data() as DbVoucher;
-    const voucherId = dbVoucher.id;
-    const voucherStatus = dbVoucher.status;
-    this.logger.info(`Refreshing voucher: ${voucherId}`, {
-      ...this.loggerInfo,
-      meta: {
-        email: dbVoucher.email,
-        status: dbVoucher.status,
-        expiredAt: dbVoucher.expiredAt,
-      },
-    });
-    const email = dbVoucher.email;
-    // get account
-    const userSnapshot = await this.dbService.getUserByEmail(email);
-    const password = userSnapshot.get('password');
+  async refreshVoucherWithEmailAndPassword(
+    email: string,
+    password: string,
+    voucherId: string
+  ): Promise<Voucher> {
     // login account
-    // before every login, switch to a new device id
-    this.switchToNewDeviceId();
     const { deviceSecretToken, accessToken } = await this.accountService.login(
       email,
       password
@@ -234,18 +211,21 @@ export class FacadeService {
     this.logger.info(`Voucher refreshed: ${voucherId}`, {
       ...this.loggerInfo,
       meta: {
-        email: dbVoucher.email,
+        email,
         status: refreshedVoucher.status,
         expiredAt: refreshedVoucher.expiredAt,
       },
     });
-    const needUpdate = refreshedVoucher.status !== voucherStatus;
+    const needUpdate = refreshedVoucher.status !== VoucherStatus.Active;
     if (needUpdate) {
       this.logger.info('Update new voucher status to DB', {
         ...this.loggerInfo,
         meta: refreshedVoucher,
       });
-      await voucherDoc.ref.set({ status: refreshedVoucher.status });
+      await this.dbService.updateVoucherStatus(
+        voucherId,
+        refreshedVoucher.status
+      );
     } else {
       this.logger.info('No voucher status update required', {
         ...this.loggerInfo,
@@ -256,6 +236,38 @@ export class FacadeService {
     }
     // logout account
     await this.accountService.logout(deviceSecretToken, accessToken);
+    return refreshedVoucher;
+  }
+
+  private async refreshVoucherWithDbDoc(
+    voucherDoc: FirebaseFirestore.QueryDocumentSnapshot<
+      FirebaseFirestore.DocumentData
+    >
+  ): Promise<{
+    account: NewAccount;
+    refreshedDbVoucher: DbVoucher;
+  }> {
+    const dbVoucher = voucherDoc.data() as DbVoucher;
+    const voucherId = dbVoucher.id;
+    this.logger.info(`Refreshing voucher: ${voucherId}`, {
+      ...this.loggerInfo,
+      meta: {
+        email: dbVoucher.email,
+        status: dbVoucher.status,
+        expiredAt: dbVoucher.expiredAt,
+      },
+    });
+    const email = dbVoucher.email;
+    // get account
+    const userSnapshot = await this.dbService.getUserByEmail(email);
+    const password = userSnapshot.get('password');
+    // refresh voucher
+    const refreshedVoucher = await this.refreshVoucherWithEmailAndPassword(
+      email,
+      password,
+      voucherId
+    );
+
     return {
       account: {
         email,
@@ -289,7 +301,11 @@ export class FacadeService {
     // for-of can keep the sequence of await in loop
     // https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
     for (const voucherDoc of voucherDocs) {
-      const { refreshedDbVoucher } = await this.refreshVoucher(voucherDoc);
+      // switch to a new device id for every refresh
+      this.switchToNewDeviceId();
+      const { refreshedDbVoucher } = await this.refreshVoucherWithDbDoc(
+        voucherDoc
+      );
       if (refreshedDbVoucher.status === VoucherStatus.Active) {
         validVouchers.push(refreshedDbVoucher);
       }
@@ -332,6 +348,7 @@ export class FacadeService {
     );
 
     for (const dbUser of dbUsers) {
+      this.switchToNewDeviceId();
       // check if this user still has active voucher attached
       const account = await this.accountService.login(
         dbUser.email,
@@ -385,7 +402,7 @@ export class FacadeService {
     return availableUsers;
   }
 
-  async lockInWithExistingOrNewUser(
+  private async lockInWithExistingOrNewUser(
     fuelType: FuelType,
     knownUnavailableEmails: KnownUnavailableEmails,
     lat: number,
@@ -557,9 +574,10 @@ export class FacadeService {
           fuelType,
         },
       });
-      const { account, refreshedDbVoucher } = await this.refreshVoucher(
-        voucherDocs[0]
-      );
+      const {
+        account,
+        refreshedDbVoucher,
+      } = await this.refreshVoucherWithDbDoc(voucherDocs[0]);
       if (refreshedDbVoucher.status === VoucherStatus.Active) {
         const { email, ...voucher } = refreshedDbVoucher;
         this.logger.info(`Voucher ${voucher.id} is valid, return!`, {
@@ -570,10 +588,7 @@ export class FacadeService {
           },
         });
         return {
-          account: {
-            email,
-            password: account.password,
-          },
+          account,
           voucher,
         };
       }

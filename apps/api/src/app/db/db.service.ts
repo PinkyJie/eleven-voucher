@@ -141,4 +141,12 @@ export class DbService {
     );
     return result;
   }
+
+  async updateVoucherStatus(voucherId: string, newStatus: VoucherStatus) {
+    const voucherRef = this.db.collection('vouchers');
+    this.logger.debug(`Update voucher ${voucherId} status to  ${newStatus}`, {
+      ...this.loggerInfo,
+    });
+    await voucherRef.doc(voucherId).set({ status: newStatus }, { merge: true });
+  }
 }

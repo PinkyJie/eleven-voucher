@@ -1,19 +1,26 @@
+fragment accountAndVoucher on AccountAndVoucher {
+  account {
+    email
+    password
+  }
+  voucher {
+    id
+    status
+    code
+    fuelType
+    fuelPrice
+    expiredAt
+  }
+}
+
 mutation GetMeAVoucher($getMeAVoucherInput: GetMeAVoucherInput!) {
   getMeAVoucher(getMeAVoucherInput: $getMeAVoucherInput) {
-    account {
-      email
-      password
-    }
-    voucher {
-      id
-      status
-      code
-      fuelType
-      fuelPrice
-      liters
-      storeId
-      createdAt
-      expiredAt
-    }
+    ...accountAndVoucher
+  }
+}
+
+mutation RefreshVoucher($refreshVoucherInput: RefreshVoucherInput!) {
+  refreshVoucher(refreshVoucherInput: $refreshVoucherInput) {
+    ...accountAndVoucher
   }
 }
