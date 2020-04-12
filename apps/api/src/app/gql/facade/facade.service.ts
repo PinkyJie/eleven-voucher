@@ -457,7 +457,7 @@ export class FacadeService {
       };
     }
     this.logger.info(
-      `Need to register ${newUserCount} new users to loc ${fuelType}.`,
+      `Need to register ${newUserCount} new users to lock ${fuelType}.`,
       {
         ...this.loggerInfo,
         meta: {
@@ -493,7 +493,7 @@ export class FacadeService {
         fuelPriceSnapshot.docs[0].get('updatedTime') < updated;
 
       if (!shouldUpdate) {
-        this.logger.info(`${fuelType}: no need to update to DB`, {
+        this.logger.info(`${fuelType}: DB has latest price already`, {
           ...this.loggerInfo,
           meta: {
             lastUpdated:
