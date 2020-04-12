@@ -101,7 +101,10 @@ export class FacadeService {
       throw new Error('Get verification code fail');
     }
 
-    const verifyResponse = await this.accountService.verify(verificationCode);
+    const verifyResponse = await this.accountService.verify(
+      verificationCode,
+      email
+    );
     return verifyResponse;
   }
 
@@ -172,7 +175,7 @@ export class FacadeService {
     this.logger.info('Lock in voucher:', {
       ...this.loggerInfo,
       meta: {
-        email: account.email,
+        email: registerData.email,
         fuelType,
       },
     });

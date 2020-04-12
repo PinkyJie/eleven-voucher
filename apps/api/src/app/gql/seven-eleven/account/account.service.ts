@@ -29,13 +29,23 @@ export class AccountService {
   ) {}
 
   private transformLoginOrVerifyResponse(
-    response: AxiosResponse<LoginOrVerifyResponse>
+    response: AxiosResponse<LoginOrVerifyResponse>,
+    /**
+     * DON'T trust the email returned by login/verify API, should
+     * always pass email field here explicity.
+     *
+     * Because API response will change from uppercase to lowercase,
+     * which is still valid for login purpose, but cause we use email
+     * as key in DB, it will trigger error when looking up the changed
+     * case email in DB.
+     */
+    email: string
   ): Account {
-    const { DeviceSecretToken, AccountId, FirstName, Email } = response.data;
+    const { DeviceSecretToken, AccountId, FirstName } = response.data;
     return {
       id: AccountId,
       firstName: FirstName,
-      email: Email,
+      email,
       deviceSecretToken: DeviceSecretToken,
       accessToken: response.headers['x-accesstoken'],
     };
@@ -57,7 +67,7 @@ export class AccountService {
       deviceId: this.ctx.deviceId,
     });
 
-    return this.transformLoginOrVerifyResponse(response);
+    return this.transformLoginOrVerifyResponse(response, email);
   }
 
   async logout(
@@ -116,7 +126,7 @@ export class AccountService {
     return response.data === '';
   }
 
-  async verify(verificationCode: string): Promise<Account> {
+  async verify(verificationCode: string, email: string): Promise<Account> {
     this.logger.debug(`Verify with: ${verificationCode}`, {
       ...this.loggerInfo,
     });
@@ -131,6 +141,6 @@ export class AccountService {
       deviceId: this.ctx.deviceId,
     });
 
-    return this.transformLoginOrVerifyResponse(response);
+    return this.transformLoginOrVerifyResponse(response, email);
   }
 }
