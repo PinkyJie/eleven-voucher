@@ -44,8 +44,9 @@ export class AccountResolver {
 
   @Mutation(() => Account, { description: 'Verify account' })
   async verify(
-    @Args('verificationCode') verificationCode: string
+    @Args('verificationCode') verificationCode: string,
+    @Args('email') email: string
   ): Promise<Account> {
-    return this.accountService.verify(verificationCode);
+    return this.accountService.verify(verificationCode, email);
   }
 }

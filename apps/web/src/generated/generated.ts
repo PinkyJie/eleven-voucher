@@ -182,6 +182,7 @@ export type MutationLogoutArgs = {
 
 
 export type MutationVerifyArgs = {
+  email: Scalars['String'];
   verificationCode: Scalars['String'];
 };
 
