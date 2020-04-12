@@ -130,6 +130,11 @@ export class FacadeService {
       throw new Error('Lock in fail');
     }
 
+    await this.dbService.addNewVoucher({
+      ...voucher,
+      email: account.email,
+    });
+
     return voucher;
   }
 
@@ -369,6 +374,11 @@ export class FacadeService {
         }
       );
 
+      // update voucher status in DB if necessary
+      for (const voucher of vouchers) {
+        await this.dbService.updateVoucherStatus(voucher.id, voucher.status);
+      }
+
       const activeVouchers = vouchers.filter(
         voucher => voucher.status === VoucherStatus.Active
       );
@@ -391,7 +401,7 @@ export class FacadeService {
       }
     }
     this.logger.info(
-      `Only ${availableUsers.length} user are available to lock ${fuelType}`,
+      `Found ${availableUsers.length} available users to lock ${fuelType}`,
       {
         ...this.loggerInfo,
         meta: {

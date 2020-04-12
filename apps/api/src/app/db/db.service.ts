@@ -144,9 +144,27 @@ export class DbService {
 
   async updateVoucherStatus(voucherId: string, newStatus: VoucherStatus) {
     const voucherRef = this.db.collection('vouchers');
-    this.logger.debug(`Update voucher ${voucherId} status to  ${newStatus}`, {
-      ...this.loggerInfo,
-    });
-    await voucherRef.doc(voucherId).set({ status: newStatus }, { merge: true });
+    const voucherDoc = await voucherRef.doc(voucherId).get();
+    if (voucherDoc.exists) {
+      await voucherDoc.ref.set({ status: newStatus }, { merge: true });
+      this.logger.debug(`Update voucher ${voucherId} status to ${newStatus}`, {
+        ...this.loggerInfo,
+        meta: {
+          voucherId,
+          newStatus,
+        },
+      });
+    } else {
+      this.logger.debug(
+        `Ignore status update of voucher ${voucherId} because it is not existed in DB`,
+        {
+          ...this.loggerInfo,
+          meta: {
+            voucherId,
+            newStatus,
+          },
+        }
+      );
+    }
   }
 }
