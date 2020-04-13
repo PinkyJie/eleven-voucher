@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -90,9 +90,10 @@ function pollRefreshedVoucher(
   ) => Promise<FetchResult<RefreshVoucherMutation>>,
   email: string,
   password: string,
-  voucherId: string
+  voucherId: string,
+  timer: React.MutableRefObject<number>
 ) {
-  setTimeout(async () => {
+  timer.current = window.setTimeout(async () => {
     const refreshedVoucher = await refreshVoucher({
       variables: {
         refreshVoucherInput: {
@@ -103,7 +104,7 @@ function pollRefreshedVoucher(
       },
     });
     if (refreshedVoucher.data.refreshVoucher.voucher.status === 0) {
-      pollRefreshedVoucher(refreshVoucher, email, password, voucherId);
+      pollRefreshedVoucher(refreshVoucher, email, password, voucherId, timer);
     }
   }, 5000);
 }
@@ -122,6 +123,8 @@ export const FuelDetail = () => {
     RefreshVoucherMutation,
     RefreshVoucherMutationVariables
   >(REFRESH_VOUCHER_MUTATION);
+
+  const timer = useRef(0);
 
   useEffect(() => {
     if (fuelType) {
@@ -158,9 +161,16 @@ export const FuelDetail = () => {
         refreshVoucher,
         account.email,
         account.password,
-        voucher.id
+        voucher.id,
+        timer
       );
     }
+    return () => {
+      if (timer.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        clearTimeout(timer.current);
+      }
+    };
   }, [data, refreshVoucher]);
 
   const invalidFuelMessage = (
@@ -270,8 +280,8 @@ export const FuelDetail = () => {
         <Modal.Header>Account</Modal.Header>
         <Modal.Content image>
           <Modal.Description>
-            <p> {data.getMeAVoucher?.account?.email}</p>
-            <p>{data.getMeAVoucher?.account?.password}</p>
+            <p>Email: {data.getMeAVoucher?.account?.email}</p>
+            <p>Password: {data.getMeAVoucher?.account?.password}</p>
           </Modal.Description>
         </Modal.Content>
       </Modal>
