@@ -4,7 +4,7 @@ import { HashRouter } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 
 import { App } from './app';
-import { client } from './apollo.client';
+import { client } from './utils/apollo.client';
 
 ReactDOM.render(
   <React.StrictMode>

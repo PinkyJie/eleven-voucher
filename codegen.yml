@@ -1,6 +1,6 @@
 overwrite: true
-schema: './schema.gql'
-documents: './apps/web/src/app/**/*.graphql'
+schema: "./schema.gql"
+documents: "./apps/web/src/app/**/*.graphql"
 config:
   namingConvention:
     typeNames: pascal-case#pascalCase
@@ -8,8 +8,8 @@ config:
 generates:
   ./apps/web/src/generated/generated.ts:
     plugins:
-      - 'typescript'
-      - 'typescript-operations'
-  ./apps/web/src/generated/generated.d.ts:
+      - "typescript"
+      - "typescript-operations"
+  ./apps/web/src/typings/gql.d.ts:
     plugins:
-      - 'typescript-graphql-files-modules'
+      - "typescript-graphql-files-modules"
