@@ -8,7 +8,7 @@ function getPhoneNumber() {
   return phoneArr.join('');
 }
 
-export function getFakeUser() {
+export function getFakeAccount() {
   const emailDomains = ['@1secmail.net', '@1secmail.com', '@1secmail.org'];
   const randomIdx = Math.floor(Math.random() * 3);
 

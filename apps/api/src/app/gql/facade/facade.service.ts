@@ -10,11 +10,11 @@ import { FuelType } from '../seven-eleven/fuel/fuel.model';
 import { Account } from '../seven-eleven/account/account.model';
 import { DbService } from '../../db/db.service';
 import { Voucher, VoucherStatus } from '../seven-eleven/voucher/voucher.model';
-import { DbUser, DbVoucher } from '../../db/db.model';
+import { DbAccount, DbVoucher } from '../../db/db.model';
 import { getDeviceId } from '../../utils/device-id';
 import { GqlContext } from '../gql.context';
 import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
-import { getFakeUser } from '../../utils/fake-user';
+import { getFakeAccount } from '../../utils/fake-account';
 import { ApiService } from '../../api/api.service';
 
 import { AccountAndVoucher, NewAccount } from './facade.model';
@@ -48,7 +48,7 @@ export class FacadeService {
   }
 
   private async registerAccount() {
-    const registerData = getFakeUser();
+    const registerData = getFakeAccount();
     const registerResponse = await this.accountService.register(
       registerData.email,
       registerData.password,
@@ -161,7 +161,7 @@ export class FacadeService {
     });
     const account = await this.verifyAccount(registerData.email);
 
-    await this.dbService.addNewUser({
+    await this.dbService.addNewAccount({
       email: registerData.email,
       password: registerData.password,
       firstName: registerData.firstName,
@@ -267,8 +267,8 @@ export class FacadeService {
     });
     const email = dbVoucher.email;
     // get account
-    const userSnapshot = await this.dbService.getUserByEmail(email);
-    const password = userSnapshot.get('password');
+    const accountSnapshot = await this.dbService.getAccountByEmail(email);
+    const password = accountSnapshot.get('password');
     // refresh voucher
     const refreshedVoucher = await this.refreshVoucherWithEmailAndPassword(
       email,
@@ -332,42 +332,42 @@ export class FacadeService {
     return validVouchers;
   }
 
-  private async findAvailableUsers(
+  private async findAvailableAccounts(
     fuelType: FuelType,
     blacklist: KnownUnavailableEmails,
     limit: number
-  ): Promise<DbUser[]> {
-    const allUsersForThisFuelSnapshot = await this.dbService.getUserByFuelType(
+  ): Promise<DbAccount[]> {
+    const allAccountsForThisFuelSnapshot = await this.dbService.getAccountByFuelType(
       fuelType
     );
-    const availableUsers: DbUser[] = [];
-    const dbUsers = allUsersForThisFuelSnapshot.docs
-      .filter(userDoc => !blacklist[userDoc.get('email')])
-      .map(userDoc => userDoc.data() as DbUser);
+    const availableAccounts: DbAccount[] = [];
+    const dbAccounts = allAccountsForThisFuelSnapshot.docs
+      .filter(accountDoc => !blacklist[accountDoc.get('email')])
+      .map(accountDoc => accountDoc.data() as DbAccount);
 
     this.logger.info(
-      `Found ${dbUsers.length} available users to lock ${fuelType}`,
+      `Found ${dbAccounts.length} available accounts to lock ${fuelType}`,
       {
         ...this.loggerInfo,
         meta: {
-          users: dbUsers,
+          accounts: dbAccounts,
         },
       }
     );
 
-    for (const dbUser of dbUsers) {
+    for (const dbAccount of dbAccounts) {
       this.switchToNewDeviceId();
-      // check if this user still has active voucher attached
+      // check if this account still has active voucher attached
       const account = await this.accountService.login(
-        dbUser.email,
-        dbUser.password
+        dbAccount.email,
+        dbAccount.password
       );
       const vouchers = await this.voucherService.getVouchers(
         account.deviceSecretToken,
         account.accessToken
       );
       this.logger.info(
-        `Found ${vouchers.length} vouchers attached to ${dbUser.email}`,
+        `Found ${vouchers.length} vouchers attached to ${dbAccount.email}`,
         {
           ...this.loggerInfo,
           meta: {
@@ -386,7 +386,7 @@ export class FacadeService {
         voucher => voucher.status === VoucherStatus.Active
       );
       this.logger.info(
-        `${activeVouchers.length} vouchers attached to ${dbUser.email} are still active`,
+        `${activeVouchers.length} vouchers attached to ${dbAccount.email} are still active`,
         {
           ...this.loggerInfo,
           meta: {
@@ -396,54 +396,54 @@ export class FacadeService {
         }
       );
       if (activeVouchers.length === 0) {
-        availableUsers.push(dbUser);
+        availableAccounts.push(dbAccount);
       }
       // early termination
-      if (availableUsers.length >= limit) {
+      if (availableAccounts.length >= limit) {
         break;
       }
     }
     this.logger.info(
-      `Found ${availableUsers.length} available users to lock ${fuelType}`,
+      `Found ${availableAccounts.length} available accounts to lock ${fuelType}`,
       {
         ...this.loggerInfo,
         meta: {
-          users: availableUsers,
+          accounts: availableAccounts,
         },
       }
     );
-    return availableUsers;
+    return availableAccounts;
   }
 
-  private async lockInWithExistingOrNewUser(
+  private async lockInWithExistingOrNewAccount(
     fuelType: FuelType,
     knownUnavailableEmails: KnownUnavailableEmails,
     lat: number,
     lng: number,
     lockCount: number
   ): Promise<AccountAndVoucher> {
-    const availableUsers = await this.findAvailableUsers(
+    const availableAccounts = await this.findAvailableAccounts(
       fuelType,
       knownUnavailableEmails,
       lockCount
     );
-    const newUserCount = lockCount - availableUsers.length;
+    const newAccountCount = lockCount - availableAccounts.length;
     let result: AccountAndVoucher;
-    // use existing user to lock
+    // use existing account to lock
     this.logger.info(
-      `Use ${availableUsers.length} existing users to lock ${fuelType}.`,
+      `Use ${availableAccounts.length} existing accounts to lock ${fuelType}.`,
       {
         ...this.loggerInfo,
         meta: {
-          users: availableUsers,
+          accounts: availableAccounts,
         },
       }
     );
-    for (const user of availableUsers) {
+    for (const availableAccount of availableAccounts) {
       this.switchToNewDeviceId();
       const account = await this.accountService.login(
-        user.email,
-        user.password
+        availableAccount.email,
+        availableAccount.password
       );
       const voucher = await this.lockInWithExistingAccount(
         account,
@@ -453,24 +453,24 @@ export class FacadeService {
       );
       result = {
         account: {
-          email: user.email,
-          password: user.password,
+          email: availableAccount.email,
+          password: availableAccount.password,
         },
         voucher,
       };
     }
     this.logger.info(
-      `Need to register ${newUserCount} new users to lock ${fuelType}.`,
+      `Need to register ${newAccountCount} new accounts to lock ${fuelType}.`,
       {
         ...this.loggerInfo,
         meta: {
-          users: availableUsers,
+          accounts: availableAccounts,
         },
       }
     );
-    if (newUserCount > 0) {
-      // create new user to lock in
-      const range = [...Array(newUserCount).keys()];
+    if (newAccountCount > 0) {
+      // create new account to lock in
+      const range = [...Array(newAccountCount).keys()];
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (const i of range) {
         this.switchToNewDeviceId();
@@ -549,7 +549,7 @@ export class FacadeService {
         this.logger.info(`Locking in 1 voucher for ${fuelType}`, {
           ...this.loggerInfo,
         });
-        await this.lockInWithExistingOrNewUser(
+        await this.lockInWithExistingOrNewAccount(
           fuelType,
           knownUnavailableEmails,
           fuelPrice.lat,
@@ -615,6 +615,6 @@ export class FacadeService {
         },
       }
     );
-    return this.lockInWithExistingOrNewUser(fuelType, {}, lat, lng, 1);
+    return this.lockInWithExistingOrNewAccount(fuelType, {}, lat, lng, 1);
   }
 }

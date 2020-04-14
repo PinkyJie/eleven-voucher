@@ -1,7 +1,7 @@
 import { FuelType, FuelPrice } from '../gql/seven-eleven/fuel/fuel.model';
 import { Voucher } from '../gql/seven-eleven/voucher/voucher.model';
 
-export class DbUser {
+export class DbAccount {
   email: string;
   password: string;
   firstName: string;

@@ -5,7 +5,7 @@ import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
 import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
 import { VoucherStatus } from '../gql/seven-eleven/voucher/voucher.model';
 
-import { DbUser, DbFuelPrice, DbVoucher } from './db.model';
+import { DbAccount, DbFuelPrice, DbVoucher } from './db.model';
 
 @Injectable()
 export class DbService {
@@ -25,17 +25,17 @@ export class DbService {
     return admin.firestore.FieldValue.serverTimestamp();
   }
 
-  async addNewUser(user: DbUser) {
-    const userRef = this.db.collection('users');
-    this.logger.debug('Add new user to DB', {
+  async addNewAccount(account: DbAccount) {
+    const accountRef = this.db.collection('accounts');
+    this.logger.debug('Add new account to DB', {
       ...this.loggerInfo,
       meta: {
-        user,
+        account,
       },
     });
-    await userRef
-      .doc(user.email)
-      .set({ ...user, timestamp: this.getServerTimestamp() });
+    await accountRef
+      .doc(account.email)
+      .set({ ...account, timestamp: this.getServerTimestamp() });
   }
 
   async getLatestFuelPriceRecord(fuelType: FuelType) {
@@ -81,20 +81,20 @@ export class DbService {
       .set({ ...voucher, timestamp: this.getServerTimestamp() });
   }
 
-  async getUserByEmail(email: string) {
-    const userRef = this.db.collection('users');
-    const result = await userRef.doc(email).get();
-    this.logger.debug(`Query the user record for email ${email} from DB`, {
+  async getAccountByEmail(email: string) {
+    const accountRef = this.db.collection('accounts');
+    const result = await accountRef.doc(email).get();
+    this.logger.debug(`Query the account record for email ${email} from DB`, {
       ...this.loggerInfo,
       meta: { db: result.data() },
     });
     return result;
   }
 
-  async getUserByFuelType(fuelType: FuelType) {
-    const userRef = this.db.collection('users');
-    const result = await userRef.where('fuelType', '==', fuelType).get();
-    this.logger.debug(`Query all user records for fuel ${fuelType}`, {
+  async getAccountByFuelType(fuelType: FuelType) {
+    const accountRef = this.db.collection('accounts');
+    const result = await accountRef.where('fuelType', '==', fuelType).get();
+    this.logger.debug(`Query all account records for fuel ${fuelType}`, {
       ...this.loggerInfo,
       meta: { db: result.docs.map(doc => doc.data()) },
     });
