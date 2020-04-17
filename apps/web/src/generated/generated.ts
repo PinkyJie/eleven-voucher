@@ -148,13 +148,13 @@ export type LogoutInput = {
 export type Mutation = {
    __typename?: 'Mutation';
   /** Register a new account */
-  register: Scalars['Boolean'];
+  registerAccount: Scalars['Boolean'];
   /** Log in */
-  login: Account;
+  loginAccount: Account;
   /** Log out */
-  logout: Scalars['Boolean'];
+  logoutAccount: Scalars['Boolean'];
   /** Verify account */
-  verify: Account;
+  verifyAccount: Account;
   /** Lock in the fuel price voucher. */
   lockInVoucher?: Maybe<Voucher>;
   /** Get a voucher directly. */
@@ -163,25 +163,27 @@ export type Mutation = {
   refreshAllFuelPrices: Scalars['Boolean'];
   /** Refresh the voucher with email/password. */
   refreshVoucher: AccountAndVoucher;
+  /** Log user out. */
+  signup: SessionUser;
 };
 
 
-export type MutationRegisterArgs = {
+export type MutationRegisterAccountArgs = {
   registerAccountInput: RegisterAccountInput;
 };
 
 
-export type MutationLoginArgs = {
+export type MutationLoginAccountArgs = {
   loginInput: LoginInput;
 };
 
 
-export type MutationLogoutArgs = {
+export type MutationLogoutAccountArgs = {
   logoutInput: LogoutInput;
 };
 
 
-export type MutationVerifyArgs = {
+export type MutationVerifyAccountArgs = {
   email: Scalars['String'];
   verificationCode: Scalars['String'];
 };
@@ -199,6 +201,13 @@ export type MutationGetMeAVoucherArgs = {
 
 export type MutationRefreshVoucherArgs = {
   refreshVoucherInput: RefreshVoucherInput;
+};
+
+
+export type MutationSignupArgs = {
+  invitationCode: Scalars['String'];
+  password: Scalars['String'];
+  email: Scalars['String'];
 };
 
 export type NewAccount = {
@@ -225,6 +234,8 @@ export type Query = {
   emailMessage?: Maybe<EmailMessageWithBody>;
   /** Retrieve the verification code in the email. */
   findVerificationCodeInEmail?: Maybe<Scalars['String']>;
+  /** Retrieve current logged in session user. */
+  sessionUser?: Maybe<SessionUser>;
 };
 
 
@@ -256,6 +267,11 @@ export type QueryFindVerificationCodeInEmailArgs = {
   email: Scalars['String'];
 };
 
+
+export type QuerySessionUserArgs = {
+  token: Scalars['String'];
+};
+
 export type RefreshVoucherInput = {
   /** The account email address */
   email: Scalars['String'];
@@ -278,6 +294,14 @@ export type RegisterAccountInput = {
   phone: Scalars['String'];
   /** Date of birth */
   dobTimestamp: Scalars['String'];
+};
+
+export type SessionUser = {
+   __typename?: 'SessionUser';
+  /** UID for the user */
+  uid: Scalars['String'];
+  /** Email address for the user */
+  email: Scalars['String'];
 };
 
 export type Voucher = {
@@ -339,6 +363,21 @@ export type RefreshVoucherMutation = (
   ) }
 );
 
+export type SignupMutationVariables = {
+  email: Scalars['String'];
+  password: Scalars['String'];
+  invitationCode: Scalars['String'];
+};
+
+
+export type SignupMutation = (
+  { __typename?: 'Mutation' }
+  & { signup: (
+    { __typename?: 'SessionUser' }
+    & Pick<SessionUser, 'uid' | 'email'>
+  ) }
+);
+
 export type GetFuelPriceQueryVariables = {};
 
 
@@ -367,4 +406,17 @@ export type GetFuelPriceQuery = (
       & Pick<FuelPrice, 'price' | 'name' | 'lat' | 'lng'>
     ) }
   ) }
+);
+
+export type GetSessionUserQueryVariables = {
+  token: Scalars['String'];
+};
+
+
+export type GetSessionUserQuery = (
+  { __typename?: 'Query' }
+  & { sessionUser?: Maybe<(
+    { __typename?: 'SessionUser' }
+    & Pick<SessionUser, 'uid' | 'email'>
+  )> }
 );

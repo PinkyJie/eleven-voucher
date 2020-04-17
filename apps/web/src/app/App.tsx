@@ -1,11 +1,15 @@
-import React, { Component } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
-import { Global, css } from '@emotion/core';
-import { Route } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { Header, Image } from 'semantic-ui-react';
 
-import { FuelList, FuelDetail } from './components';
-import { FuelPriceContextProvider } from './context';
+import {
+  FuelList,
+  FuelDetail,
+  Login,
+  PrivateRoute,
+  Signup,
+} from './components';
 
 const StyledApp = styled.div`
   min-width: 300px;
@@ -21,38 +25,33 @@ const StyledMain = styled.main`
   padding: 2.5em;
 `;
 
-export class App extends Component {
-  render() {
-    return (
-      <StyledApp>
-        <Global
-          styles={css`
-            .slick-next:before {
-              color: black;
-            }
-            .slick-prev:before {
-              color: black;
-            }
-          `}
-        />
-        <Image src="/assets/fuel.png" size="small" centered />
-        <StyledHeader as="h2" icon>
-          Eleven Voucher
-          <Header.Subheader>
-            Get your fuel voucher with just one-click.
-          </Header.Subheader>
-        </StyledHeader>
-        <FuelPriceContextProvider>
-          <StyledMain>
-            <Route path="/" exact>
-              <FuelList />
-            </Route>
-            <Route path="/fuel/:fuelType" exact>
-              <FuelDetail />
-            </Route>
-          </StyledMain>
-        </FuelPriceContextProvider>
-      </StyledApp>
-    );
-  }
-}
+export const App = () => {
+  return (
+    <StyledApp>
+      <Image src="/assets/fuel.png" size="small" centered />
+      <StyledHeader as="h2" icon>
+        Eleven Voucher
+        <Header.Subheader>
+          Get your fuel voucher with just one-click.
+        </Header.Subheader>
+      </StyledHeader>
+      <StyledMain>
+        <Switch>
+          <Route path="/login" exact>
+            <Login />
+          </Route>
+          <Route path="/signup" exact>
+            <Signup />
+          </Route>
+          <PrivateRoute path="/" exact>
+            <FuelList />
+          </PrivateRoute>
+          <PrivateRoute path="/fuel/:fuelType" exact>
+            <FuelDetail />
+          </PrivateRoute>
+          <Route path="*">aaaa</Route>
+        </Switch>
+      </StyledMain>
+    </StyledApp>
+  );
+};

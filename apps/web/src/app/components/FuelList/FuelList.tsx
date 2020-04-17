@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import Slider, { Settings } from 'react-slick';
 import styled from '@emotion/styled';
+import { css, Global } from '@emotion/core';
 
 import { logPageView } from '../../../utils/firebase';
 import { FuelType } from '../../../generated/generated';
@@ -33,6 +34,16 @@ export const FuelList = () => {
 
   return (
     <StyledFuelList>
+      <Global
+        styles={css`
+          .slick-next:before {
+            color: black;
+          }
+          .slick-prev:before {
+            color: black;
+          }
+        `}
+      />
       <Slider {...sliderSettings}>
         {allFuelTypes.map(fuelType => (
           <FuelListItem
