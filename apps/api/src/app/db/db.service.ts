@@ -4,6 +4,7 @@ import admin from 'firebase-admin';
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
 import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
 import { VoucherStatus } from '../gql/seven-eleven/voucher/voucher.model';
+import { firestoreDb } from '../utils/firebase-admin';
 
 import { DbAccount, DbFuelPrice, DbVoucher } from './db.model';
 
@@ -15,10 +16,7 @@ export class DbService {
   private db: FirebaseFirestore.Firestore;
 
   constructor(@Inject(WINSTON_LOGGER) private logger: Logger) {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    this.db = admin.firestore();
+    this.db = firestoreDb;
   }
 
   private getServerTimestamp() {
@@ -166,5 +164,15 @@ export class DbService {
         }
       );
     }
+  }
+
+  async getUserByEmail(email: string) {
+    const userRef = this.db.collection('users');
+    const userDoc = await userRef.doc(email).get();
+    this.logger.debug(`Query the user record for email ${email} from DB`, {
+      ...this.loggerInfo,
+      meta: { db: userDoc.exists ? userDoc.data() : {} },
+    });
+    return userDoc;
   }
 }

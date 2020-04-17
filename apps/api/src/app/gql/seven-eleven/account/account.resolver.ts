@@ -14,7 +14,7 @@ export class AccountResolver {
   }
 
   @Mutation(() => Boolean, { description: 'Register a new account' })
-  async register(
+  async registerAccount(
     @Args('registerAccountInput') registerAccountInput: RegisterAccountInput
   ): Promise<boolean> {
     return this.accountService.register(
@@ -28,12 +28,14 @@ export class AccountResolver {
   }
 
   @Mutation(() => Account, { description: 'Log in' })
-  async login(@Args('loginInput') loginInput: LoginInput): Promise<Account> {
+  async loginAccount(
+    @Args('loginInput') loginInput: LoginInput
+  ): Promise<Account> {
     return this.accountService.login(loginInput.email, loginInput.password);
   }
 
   @Mutation(() => Boolean, { description: 'Log out' })
-  async logout(
+  async logoutAccount(
     @Args('logoutInput') logoutInput: LogoutInput
   ): Promise<boolean> {
     return this.accountService.logout(
@@ -43,7 +45,7 @@ export class AccountResolver {
   }
 
   @Mutation(() => Account, { description: 'Verify account' })
-  async verify(
+  async verifyAccount(
     @Args('verificationCode') verificationCode: string,
     @Args('email') email: string
   ): Promise<Account> {
