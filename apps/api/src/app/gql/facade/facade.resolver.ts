@@ -1,5 +1,7 @@
 import { Resolver, Args, Mutation } from '@nestjs/graphql';
 
+import { PublicAccess } from '../auth/auth.decorator';
+
 import { FacadeService } from './facade.service';
 import { AccountAndVoucher } from './facade.model';
 import { GetMeAVoucherInput, RefreshVoucherInput } from './facade.dto';
@@ -23,6 +25,7 @@ export class FacadeResolver {
     );
   }
 
+  @PublicAccess()
   @Mutation(() => Boolean, {
     description: 'Refresh all fuel prices.',
   })
