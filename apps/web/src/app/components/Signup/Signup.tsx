@@ -74,7 +74,7 @@ export const Signup = () => {
         <a
           rel="noopener noreferrer"
           target="_blank"
-          href="https://forms.gle/Ng4uk4EeSqPjDXET9"
+          href="https://eleven-voucher.typeform.com/to/Ooi5qA"
         >
           <b>CLICK HERE</b>
         </a>
