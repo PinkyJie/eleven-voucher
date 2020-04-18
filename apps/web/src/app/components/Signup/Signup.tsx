@@ -80,13 +80,7 @@ export const Signup = () => {
         </a>
         &nbsp; to get an invitation code.
       </Message>
-      <Form
-        onSubmit={handleSignup}
-        size="large"
-        loading={loading}
-        attached
-        fluid
-      >
+      <Form onSubmit={handleSignup} size="large" loading={loading}>
         <Segment attached>
           {error && (
             <Message negative>

@@ -39,13 +39,7 @@ export const Login = () => {
 
   return (
     <>
-      <Form
-        onSubmit={handleLogin}
-        size="large"
-        loading={loading}
-        attached
-        fluid
-      >
+      <Form onSubmit={handleLogin} size="large" loading={loading}>
         <Segment attached>
           {loginError && (
             <Message negative>

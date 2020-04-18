@@ -33,7 +33,8 @@
   },
   "private": true,
   "dependencies": {
-    "@apollo/client": "^3.0.0-beta.41",
+    "@apollo/client": "^3.0.0-beta.43",
+    "@apollo/link-context": "^2.0.0-beta.3",
     "@emotion/core": "10.0.28",
     "@emotion/styled": "10.0.27",
     "@nestjs/common": "^7.0.6",

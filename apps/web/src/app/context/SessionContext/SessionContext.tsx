@@ -38,6 +38,7 @@ export const SessionContextProvider = ({
     GetSessionUserQueryVariables
   >(GET_SESSION_USER_QUERY, {
     skip: !token,
+    fetchPolicy: 'network-only',
   });
 
   const setTokenHandler = useCallback((_token: string) => {
