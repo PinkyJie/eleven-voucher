@@ -58,6 +58,22 @@ export class AuthService {
     password: string,
     invitationCode: string
   ): Promise<SessionUser> {
+    try {
+      await this.auth.getUserByEmail(email);
+      this.logger.error('Email already exists', {
+        ...this.loggerInfo,
+        meta: {
+          email,
+        },
+      });
+      throw new Error('Email already exists, try to log in directly!');
+    } catch (e) {
+      if (e.code !== 'auth/user-not-found') {
+        throw e;
+      }
+      // user not existed, good to go
+    }
+
     const userDoc = await this.dbService.getUserByEmail(email);
     if (!userDoc.exists || userDoc.get('invitationCode') !== invitationCode) {
       this.logger.error('No invitation code attached to this email', {
@@ -66,7 +82,7 @@ export class AuthService {
           email,
         },
       });
-      throw new Error('No invitation code attached to this email!');
+      throw new Error('You are not invited!');
     }
     const userRecord = await this.auth.createUser({
       email,

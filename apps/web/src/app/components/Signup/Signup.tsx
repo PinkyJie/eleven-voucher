@@ -3,6 +3,7 @@ import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 
+import { extractGraphqlErrorMessage } from '../../../utils/error';
 import { firebaseAuth } from '../../../utils/firebase';
 import {
   SignupMutation,
@@ -71,7 +72,7 @@ export const Signup = () => {
         <Segment stacked>
           {error && (
             <Message negative>
-              <p>You are not invited!</p>
+              <p>{extractGraphqlErrorMessage(error)}</p>
             </Message>
           )}
           <Form.Input

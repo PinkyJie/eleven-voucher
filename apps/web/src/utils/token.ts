@@ -7,3 +7,7 @@ export function getTokenFromStore() {
 export function saveTokenToStore(token: string) {
   window.localStorage.setItem(TOKEN_KEY, token);
 }
+
+export function removeTokenFromStore() {
+  window.localStorage.removeItem(TOKEN_KEY);
+}

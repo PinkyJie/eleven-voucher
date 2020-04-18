@@ -7,7 +7,11 @@ import {
   GetSessionUserQuery,
   GetSessionUserQueryVariables,
 } from '../../../generated/generated';
-import { getTokenFromStore, saveTokenToStore } from '../../../utils/token';
+import {
+  getTokenFromStore,
+  saveTokenToStore,
+  removeTokenFromStore,
+} from '../../../utils/token';
 
 import GET_SESSION_USER_QUERY from './SessionContext.graphql';
 
@@ -29,7 +33,7 @@ export const SessionContextProvider = ({
   const [user, setUser] = useState(null);
   const history = useHistory();
 
-  const { loading, data } = useQuery<
+  const { loading, data, error } = useQuery<
     GetSessionUserQuery,
     GetSessionUserQueryVariables
   >(GET_SESSION_USER_QUERY, {
@@ -47,6 +51,12 @@ export const SessionContextProvider = ({
       history.replace('/');
     }
   }, [data, token, history]);
+
+  useEffect(() => {
+    if (error) {
+      removeTokenFromStore();
+    }
+  }, [error]);
 
   const value: SessionContextData = {
     user,
