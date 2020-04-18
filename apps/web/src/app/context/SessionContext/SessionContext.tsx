@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 import { Loader } from 'semantic-ui-react';
 import { useHistory } from 'react-router-dom';
@@ -7,7 +7,7 @@ import {
   GetSessionUserQuery,
   GetSessionUserQueryVariables,
 } from '../../../generated/generated';
-import { TOKEN_KEY } from '../../../utils/constants';
+import { getTokenFromStore, saveTokenToStore } from '../../../utils/token';
 
 import GET_SESSION_USER_QUERY from './SessionContext.graphql';
 
@@ -25,7 +25,7 @@ export interface SessionContextProviderProps {
 export const SessionContextProvider = ({
   children,
 }: SessionContextProviderProps) => {
-  const [token, setToken] = useState(window.localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState(getTokenFromStore());
   const [user, setUser] = useState(null);
   const history = useHistory();
 
@@ -34,14 +34,15 @@ export const SessionContextProvider = ({
     GetSessionUserQueryVariables
   >(GET_SESSION_USER_QUERY, {
     skip: !token,
-    variables: {
-      token,
-    },
   });
+
+  const setTokenHandler = useCallback((_token: string) => {
+    saveTokenToStore(_token);
+    setToken(_token);
+  }, []);
 
   useEffect(() => {
     if (data?.sessionUser?.uid) {
-      window.localStorage.setItem(TOKEN_KEY, token);
       setUser(data.sessionUser);
       history.replace('/');
     }
@@ -49,7 +50,7 @@ export const SessionContextProvider = ({
 
   const value: SessionContextData = {
     user,
-    setToken,
+    setToken: setTokenHandler,
   };
 
   return (

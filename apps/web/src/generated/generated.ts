@@ -163,7 +163,7 @@ export type Mutation = {
   refreshAllFuelPrices: Scalars['Boolean'];
   /** Refresh the voucher with email/password. */
   refreshVoucher: AccountAndVoucher;
-  /** Log user out. */
+  /** Sign up for new user. */
   signup: SessionUser;
 };
 
@@ -265,11 +265,6 @@ export type QueryEmailMessageArgs = {
 
 export type QueryFindVerificationCodeInEmailArgs = {
   email: Scalars['String'];
-};
-
-
-export type QuerySessionUserArgs = {
-  token: Scalars['String'];
 };
 
 export type RefreshVoucherInput = {
@@ -408,9 +403,7 @@ export type GetFuelPriceQuery = (
   ) }
 );
 
-export type GetSessionUserQueryVariables = {
-  token: Scalars['String'];
-};
+export type GetSessionUserQueryVariables = {};
 
 
 export type GetSessionUserQuery = (
