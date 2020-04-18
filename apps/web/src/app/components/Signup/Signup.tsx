@@ -70,15 +70,15 @@ export const Signup = () => {
   return (
     <>
       <Message attached info>
-        We are still in beta now, &nbsp;
+        We are still in beta now, leave your email &nbsp;
         <a
           rel="noopener noreferrer"
           target="_blank"
           href="https://eleven-voucher.typeform.com/to/Ooi5qA"
         >
-          <b>CLICK HERE</b>
+          <b>HERE</b>
         </a>
-        &nbsp; to get an invitation code.
+        &nbsp; so we can send you an invitation code.
       </Message>
       <Form onSubmit={handleSignup} size="large" loading={loading}>
         <Segment attached>

@@ -28,29 +28,40 @@ export class AuthService {
         token,
       },
     });
-    const decodedToken = await this.auth.verifyIdToken(token, true);
-    if (!decodedToken.invitationCode) {
-      this.logger.error(`Token does not have invitation code`, {
+    try {
+      const decodedToken = await this.auth.verifyIdToken(token, true);
+      if (!decodedToken.invitationCode) {
+        this.logger.error(`Token does not have invitation code`, {
+          ...this.loggerInfo,
+          meta: {
+            token,
+            decodedToken,
+          },
+        });
+        return null;
+      }
+      this.logger.info(`Token is valid`, {
         ...this.loggerInfo,
         meta: {
           token,
           decodedToken,
         },
       });
+
+      return {
+        uid: decodedToken.uid,
+        email: decodedToken.firebase.identities.email[0],
+      };
+    } catch (e) {
+      // ignore error
+      this.logger.error(`Token is expired`, {
+        ...this.loggerInfo,
+        meta: {
+          token,
+        },
+      });
       return null;
     }
-    this.logger.info(`Token is valid`, {
-      ...this.loggerInfo,
-      meta: {
-        token,
-        decodedToken,
-      },
-    });
-
-    return {
-      uid: decodedToken.uid,
-      email: decodedToken.firebase.identities.email[0],
-    };
   }
 
   async signup(
