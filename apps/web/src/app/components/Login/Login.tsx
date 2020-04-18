@@ -39,8 +39,14 @@ export const Login = () => {
 
   return (
     <>
-      <Form onSubmit={handleLogin} size="large">
-        <Segment stacked>
+      <Form
+        onSubmit={handleLogin}
+        size="large"
+        loading={loading}
+        attached
+        fluid
+      >
+        <Segment attached>
           {loginError && (
             <Message negative>
               <p>Your email/password is not correct!</p>
@@ -61,19 +67,13 @@ export const Login = () => {
             type="password"
             fluid
           />
-          <Button
-            type="submit"
-            color="teal"
-            fluid
-            size="large"
-            loading={loading}
-          >
+          <Button type="submit" color="teal" fluid size="large">
             Login
           </Button>
         </Segment>
       </Form>
-      <Message>
-        New to us? &nbsp; <Link to={Routes.Signup}>Sign Up</Link>
+      <Message attached="bottom" warning>
+        New to us? &nbsp; <Link to={Routes.Signup}>Sign Up</Link> &nbsp; first.
       </Message>
     </>
   );

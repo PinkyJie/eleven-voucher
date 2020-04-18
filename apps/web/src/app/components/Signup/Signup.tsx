@@ -69,8 +69,25 @@ export const Signup = () => {
 
   return (
     <>
-      <Form onSubmit={handleSignup} size="large">
-        <Segment stacked>
+      <Message attached info>
+        We are still in beta now, &nbsp;
+        <a
+          rel="noopener noreferrer"
+          target="_blank"
+          href="https://forms.gle/Ng4uk4EeSqPjDXET9"
+        >
+          <b>CLICK HERE</b>
+        </a>
+        &nbsp; to get an invitation code.
+      </Message>
+      <Form
+        onSubmit={handleSignup}
+        size="large"
+        loading={loading}
+        attached
+        fluid
+      >
+        <Segment attached>
           {error && (
             <Message negative>
               <p>{extractGraphqlErrorMessage(error)}</p>
@@ -99,19 +116,14 @@ export const Signup = () => {
             autoComplete="off"
             fluid
           />
-          <Button
-            type="submit"
-            color="teal"
-            fluid
-            size="large"
-            loading={loading}
-          >
+          <Button type="submit" color="teal" fluid size="large">
             Sign up
           </Button>
         </Segment>
       </Form>
-      <Message>
-        Have account? &nbsp; <Link to={Routes.Login}>Log in</Link>
+      <Message attached="bottom" warning>
+        Already signed up? &nbsp; <Link to={Routes.Login}>Log in</Link> &nbsp;
+        instead.
       </Message>
     </>
   );
