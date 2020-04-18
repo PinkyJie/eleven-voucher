@@ -2,6 +2,7 @@ import React, { useCallback, useState, useContext } from 'react';
 import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+import { Routes } from '../../../utils/constants';
 import { firebaseAuth } from '../../../utils/firebase';
 import { SessionContext } from '../../context';
 
@@ -72,7 +73,7 @@ export const Login = () => {
         </Segment>
       </Form>
       <Message>
-        New to us? &nbsp; <Link to="/signup">Sign Up</Link>
+        New to us? &nbsp; <Link to={Routes.Signup}>Sign Up</Link>
       </Message>
     </>
   );

@@ -20,6 +20,7 @@ import {
 import bwipjs from 'bwip-js';
 import { format } from 'date-fns';
 
+import { Routes } from '../../../utils/constants';
 import { logPageView } from '../../../utils/firebase';
 import {
   FuelType,
@@ -303,7 +304,7 @@ export const FuelDetail = () => {
 
   return (
     <StyledFuelDetail>
-      <Link to="/">
+      <Link to={Routes.Home}>
         <Button
           content="Back"
           icon="arrow alternate circle left"

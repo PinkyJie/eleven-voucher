@@ -3,6 +3,8 @@ import styled from '@emotion/styled';
 import { Route, Switch } from 'react-router-dom';
 import { Header, Image } from 'semantic-ui-react';
 
+import { Routes } from '../utils/constants';
+
 import {
   FuelList,
   FuelDetail,
@@ -37,19 +39,19 @@ export const App = () => {
       </StyledHeader>
       <StyledMain>
         <Switch>
-          <Route path="/login" exact>
+          <Route path={Routes.Login} exact>
             <Login />
           </Route>
-          <Route path="/signup" exact>
+          <Route path={Routes.Signup} exact>
             <Signup />
           </Route>
-          <PrivateRoute path="/" exact>
+          <PrivateRoute path={Routes.Home} exact>
             <FuelList />
           </PrivateRoute>
-          <PrivateRoute path="/fuel/:fuelType" exact>
+          <PrivateRoute path={Routes.FuelDetail} exact>
             <FuelDetail />
           </PrivateRoute>
-          <Route path="*">aaaa</Route>
+          <Route path="*">404 Not Found</Route>
         </Switch>
       </StyledMain>
     </StyledApp>

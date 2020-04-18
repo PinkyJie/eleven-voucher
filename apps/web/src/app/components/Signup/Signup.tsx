@@ -10,6 +10,7 @@ import {
   SignupMutationVariables,
 } from '../../../generated/generated';
 import { SessionContext } from '../../context';
+import { Routes } from '../../../utils/constants';
 
 import SIGNUP_MUTATION from './Signup.graphql';
 
@@ -110,7 +111,7 @@ export const Signup = () => {
         </Segment>
       </Form>
       <Message>
-        Have account? &nbsp; <Link to="/login">Log in</Link>
+        Have account? &nbsp; <Link to={Routes.Login}>Log in</Link>
       </Message>
     </>
   );
