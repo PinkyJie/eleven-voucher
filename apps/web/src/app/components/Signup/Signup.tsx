@@ -26,9 +26,8 @@ export const Signup = () => {
 
   const handleSignup = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { email, password, invitationCode } = event.currentTarget
-        .elements as any;
+        .elements as any; // eslint-disable-line @typescript-eslint/no-explicit-any
       const emailRe = /\S+@\S+\.\S+/;
       if (
         email.value &&
