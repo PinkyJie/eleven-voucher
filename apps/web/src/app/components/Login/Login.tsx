@@ -26,7 +26,6 @@ export const Login = () => {
           );
           const token = await firebaseAuth.currentUser.getIdToken();
           setToken(token);
-          setLoading(false);
         } catch (e) {
           console.error(e);
           setLoginError(true);
