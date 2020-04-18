@@ -8,20 +8,22 @@ import { SevenElevenModule } from './seven-eleven/seven-eleven.module';
 import { EmailModule } from './email/email.module';
 import { FacadeModule } from './facade/facade.module';
 import { GqlContext } from './gql.context';
-import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     EmailModule,
     SevenElevenModule,
     FacadeModule,
-    UserModule,
+    AuthModule,
     GraphQLModule.forRoot({
-      context: (): GqlContext => ({
+      context: ({ req }): GqlContext => ({
         // get a new device id for every request, otherwise lock in API will return error
         deviceId: getDeviceId(),
+        req,
       }),
       playground: true,
+      introspection: true,
       ...(environment.readonlyFileSystem
         ? {
             // for read only file system, use in memory file

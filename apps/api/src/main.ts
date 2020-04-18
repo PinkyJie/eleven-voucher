@@ -1,10 +1,11 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 import { Logger } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
+import { FirebaseAuthGuard } from './app/gql/auth/auth.guard';
 
 const logger = new Logger('Main');
 
@@ -19,7 +20,12 @@ export const createNestServer = async expressInstance => {
     AppModule,
     new ExpressAdapter(expressInstance)
   );
-  app.enableCors();
+  app.enableCors({
+    origin: environment.corsWhitelist,
+  });
+
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new FirebaseAuthGuard(reflector));
 
   return app.listen(port, '');
 };

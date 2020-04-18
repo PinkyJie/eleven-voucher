@@ -5,10 +5,10 @@ import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { DbService } from '../../db/db.service';
 import { firebaseAuth } from '../../utils/firebase-admin';
 
-import { SessionUser } from './user.model';
+import { SessionUser } from './auth.model';
 
 @Injectable()
-export class UserService {
+export class AuthService {
   private loggerInfo = {
     emitter: 'UserService',
   };
@@ -21,7 +21,7 @@ export class UserService {
     this.auth = firebaseAuth;
   }
 
-  async getSessionUser(token: string): Promise<SessionUser> {
+  async validateToken(token: string): Promise<SessionUser> {
     this.logger.info(`Check if session token is valid`, {
       ...this.loggerInfo,
       meta: {
