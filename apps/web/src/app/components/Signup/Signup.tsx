@@ -3,8 +3,8 @@ import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 
+import { loginAndGetToken } from '../../../utils/auth';
 import { extractGraphqlErrorMessage } from '../../../utils/error';
-import { firebaseAuth } from '../../../utils/firebase';
 import {
   SignupMutation,
   SignupMutationVariables,
@@ -55,11 +55,10 @@ export const Signup = () => {
 
   useEffect(() => {
     async function loginAndSetToken() {
-      await firebaseAuth.signInWithEmailAndPassword(
+      const token = await loginAndGetToken(
         credential.email,
         credential.password
       );
-      const token = await firebaseAuth.currentUser.getIdToken(true);
       setToken(token);
     }
     if (data?.signup?.uid && credential.email && credential.password) {

@@ -267,6 +267,11 @@ export type QueryFindVerificationCodeInEmailArgs = {
   email: Scalars['String'];
 };
 
+
+export type QuerySessionUserArgs = {
+  token: Scalars['String'];
+};
+
 export type RefreshVoucherInput = {
   /** The account email address */
   email: Scalars['String'];
@@ -403,7 +408,9 @@ export type GetFuelPriceQuery = (
   ) }
 );
 
-export type GetSessionUserQueryVariables = {};
+export type GetSessionUserQueryVariables = {
+  token: Scalars['String'];
+};
 
 
 export type GetSessionUserQuery = (

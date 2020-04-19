@@ -2,8 +2,8 @@ import React, { useCallback, useState, useContext } from 'react';
 import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+import { loginAndGetToken } from '../../../utils/auth';
 import { Routes } from '../../../utils/constants';
-import { firebaseAuth } from '../../../utils/firebase';
 import { SessionContext } from '../../context';
 
 export const Login = () => {
@@ -20,11 +20,7 @@ export const Login = () => {
         setLoginError(false);
         setLoading(true);
         try {
-          await firebaseAuth.signInWithEmailAndPassword(
-            email.value,
-            password.value
-          );
-          const token = await firebaseAuth.currentUser.getIdToken();
+          const token = await loginAndGetToken(email.value, password.value);
           setToken(token);
         } catch (e) {
           console.error(e);

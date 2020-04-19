@@ -1,5 +1,5 @@
-query GetSessionUser {
-  sessionUser {
+query GetSessionUser($token: String!) {
+  sessionUser(token: $token) {
     uid
     email
   }

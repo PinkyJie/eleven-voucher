@@ -1,3 +1,5 @@
+import { firebaseAuth } from './firebase';
+
 const TOKEN_KEY = 'ELEVEN_TOKEN';
 
 export function getTokenFromStore() {
@@ -10,4 +12,12 @@ export function saveTokenToStore(token: string) {
 
 export function removeTokenFromStore() {
   window.localStorage.removeItem(TOKEN_KEY);
+}
+
+export async function loginAndGetToken(
+  email: string,
+  password: string
+): Promise<string> {
+  await firebaseAuth.signInWithEmailAndPassword(email, password);
+  return firebaseAuth.currentUser.getIdToken(true);
 }

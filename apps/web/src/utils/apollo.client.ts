@@ -9,7 +9,7 @@ import { onError } from '@apollo/link-error';
 
 import { environment } from '../environments/environment';
 
-import { getTokenFromStore, removeTokenFromStore } from './token';
+import { getTokenFromStore, removeTokenFromStore } from './auth';
 import { Routes } from './constants';
 const httpLink = createHttpLink({
   uri: environment.backendUrl,
