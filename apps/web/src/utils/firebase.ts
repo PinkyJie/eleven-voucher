@@ -4,8 +4,10 @@ export const firebaseAuth = firebaseApp.auth();
 export const firebaseAnalytics = firebaseApp.analytics();
 
 export function logPageView() {
-  firebaseAnalytics.logEvent('page_view', {
+  firebaseAnalytics.logEvent('screen_view', {
     // eslint-disable-next-line @typescript-eslint/camelcase
-    page_path: window.location.hash,
+    app_name: 'Eleven Voucher',
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    screen_name: window.location.hash,
   });
 }
