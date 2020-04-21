@@ -10,7 +10,7 @@ import { SessionUser } from './auth.model';
 @Injectable()
 export class AuthService {
   private loggerInfo = {
-    emitter: 'UserService',
+    emitter: 'AuthService',
   };
   private auth: admin.auth.Auth;
 
@@ -53,14 +53,17 @@ export class AuthService {
         email: decodedToken.firebase.identities.email[0],
       };
     } catch (e) {
-      // ignore error
-      this.logger.error(`Token is expired`, {
-        ...this.loggerInfo,
-        meta: {
-          token,
-        },
-      });
-      return null;
+      if (e.code === 'auth/id-token-expired') {
+        // ignore error
+        this.logger.error(`Token is expired`, {
+          ...this.loggerInfo,
+          meta: {
+            token,
+          },
+        });
+        return null;
+      }
+      throw e;
     }
   }
 
@@ -85,8 +88,11 @@ export class AuthService {
       // user not existed, good to go
     }
 
-    const userDoc = await this.dbService.getUserByEmail(email);
-    if (!userDoc.exists || userDoc.get('invitationCode') !== invitationCode) {
+    const invitationDoc = await this.dbService.getInvitationByEmail(email);
+    if (
+      !invitationDoc.exists ||
+      invitationDoc.get('invitationCode') !== invitationCode
+    ) {
       this.logger.error('No invitation code attached to this email', {
         ...this.loggerInfo,
         meta: {

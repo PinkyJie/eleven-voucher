@@ -7,6 +7,8 @@ import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
 import { FirebaseAuthGuard } from './app/gql/auth/auth.guard';
 
+require('dotenv').config();
+
 const logger = new Logger('Main');
 
 const server = express();

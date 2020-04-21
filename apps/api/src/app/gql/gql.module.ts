@@ -9,6 +9,7 @@ import { EmailModule } from './email/email.module';
 import { FacadeModule } from './facade/facade.module';
 import { GqlContext } from './gql.context';
 import { AuthModule } from './auth/auth.module';
+import { InvitationCodeModule } from './invitation-code/invitation-code.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
     SevenElevenModule,
     FacadeModule,
     AuthModule,
+    InvitationCodeModule,
     GraphQLModule.forRoot({
       context: ({ req }): GqlContext => ({
         // get a new device id for every request, otherwise lock in API will return error

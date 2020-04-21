@@ -166,13 +166,31 @@ export class DbService {
     }
   }
 
-  async getUserByEmail(email: string) {
-    const userRef = this.db.collection('users');
-    const userDoc = await userRef.doc(email).get();
-    this.logger.debug(`Query the user record for email ${email} from DB`, {
+  async getInvitationByEmail(email: string) {
+    const invitationRef = this.db.collection('invitations');
+    const invitationDoc = await invitationRef.doc(email).get();
+    this.logger.debug(
+      `Query the invitation record for email ${email} from DB`,
+      {
+        ...this.loggerInfo,
+        meta: { db: invitationDoc.exists ? invitationDoc.data() : {} },
+      }
+    );
+    return invitationDoc;
+  }
+
+  async addEmailWithInvitationCode(email: string, invitationCode: string) {
+    const invitationRef = this.db.collection('invitations');
+    this.logger.debug('Add new email with invitation code to DB', {
       ...this.loggerInfo,
-      meta: { db: userDoc.exists ? userDoc.data() : {} },
+      meta: {
+        email,
+        invitationCode,
+      },
     });
-    return userDoc;
+    await invitationRef.doc(email).set({
+      invitationCode,
+      timestamp: this.getServerTimestamp(),
+    });
   }
 }
