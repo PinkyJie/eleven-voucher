@@ -21,7 +21,7 @@ import bwipjs from 'bwip-js';
 import { format } from 'date-fns';
 
 import { Routes } from '../../../utils/constants';
-import { logPageView } from '../../../utils/firebase';
+import { logScreenView } from '../../../utils/firebase';
 import {
   FuelType,
   GetMeAVoucherMutation,
@@ -128,7 +128,7 @@ export const FuelDetail = () => {
 
   const timer = useRef(0);
 
-  useEffect(logPageView, []);
+  useEffect(logScreenView, []);
 
   useEffect(() => {
     if (fuelType) {

@@ -2,6 +2,7 @@ import React, { useContext, useCallback, useEffect, useState } from 'react';
 import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
+import { parse } from 'query-string';
 
 import { loginAndGetToken } from '../../../utils/auth';
 import { extractGraphqlErrorMessage } from '../../../utils/error';
@@ -11,14 +12,17 @@ import {
 } from '../../../generated/generated';
 import { SessionContext } from '../../context';
 import { Routes } from '../../../utils/constants';
+import { logScreenView } from '../../../utils/firebase';
 
 import SIGNUP_MUTATION from './Signup.graphql';
 
 export const Signup = () => {
   const { setToken } = useContext(SessionContext);
-  const [credential, setCredential] = useState<{
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [formData, setFormData] = useState<{
     email?: string;
     password?: string;
+    invitationCode?: string;
   }>({});
 
   const [signup, { data, loading, error }] = useMutation<
@@ -26,45 +30,48 @@ export const Signup = () => {
     SignupMutationVariables
   >(SIGNUP_MUTATION);
 
-  const handleSignup = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      const { email, password, invitationCode } = event.currentTarget
-        .elements as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-      const emailRe = /\S+@\S+\.\S+/;
-      if (
-        email.value &&
-        password.value &&
-        invitationCode.value &&
-        emailRe.exec(email.value)
-      ) {
-        setCredential({
-          email: email.value,
-          password: password.value,
-        });
-        signup({
-          variables: {
-            email: email.value,
-            password: password.value,
-            invitationCode: invitationCode.value,
-          },
-        });
-      }
-    },
-    [setCredential, signup]
-  );
+  const handleSignup = useCallback(async () => {
+    const emailRe = /\S+@\S+\.\S+/;
+    if (
+      formData.email &&
+      formData.password &&
+      formData.invitationCode &&
+      emailRe.exec(formData.email)
+    ) {
+      signup({
+        variables: {
+          email: formData.email,
+          password: formData.password,
+          invitationCode: formData.invitationCode,
+        },
+      });
+    }
+  }, [formData, signup]);
+
+  useEffect(logScreenView, []);
+
+  useEffect(() => {
+    const urlQuery = window.location.hash.replace(`#${Routes.Signup}`, '');
+    const parsedUrlQuery = parse(urlQuery);
+    if (parsedUrlQuery.email && parsedUrlQuery.invitationCode) {
+      setFormData({
+        email: parsedUrlQuery.email as string,
+        invitationCode: parsedUrlQuery.invitationCode as string,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     async function loginAndSetToken() {
-      const token = await loginAndGetToken(
-        credential.email,
-        credential.password
-      );
+      setLoginLoading(true);
+      const token = await loginAndGetToken(formData.email, formData.password);
+      setLoginLoading(false);
       setToken(token);
     }
-    if (data?.signup?.uid && credential.email && credential.password) {
+    if (data?.signup?.uid) {
       loginAndSetToken();
     }
-  }, [data, setToken, credential]);
+  }, [data, formData, setLoginLoading, setToken]);
 
   return (
     <>
@@ -79,7 +86,11 @@ export const Signup = () => {
         </a>
         &nbsp; so we can send you an invitation code.
       </Message>
-      <Form onSubmit={handleSignup} size="large" loading={loading}>
+      <Form
+        onSubmit={handleSignup}
+        size="large"
+        loading={loading || loginLoading}
+      >
         <Segment attached>
           {error && (
             <Message negative>
@@ -91,6 +102,8 @@ export const Signup = () => {
             icon="user"
             iconPosition="left"
             placeholder="E-mail address"
+            value={formData.email}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
             fluid
           />
           <Form.Input
@@ -99,6 +112,10 @@ export const Signup = () => {
             iconPosition="left"
             placeholder="Password"
             type="password"
+            value={formData.password}
+            onChange={e =>
+              setFormData({ ...formData, password: e.target.value })
+            }
             fluid
           />
           <Form.Input
@@ -107,6 +124,10 @@ export const Signup = () => {
             iconPosition="left"
             placeholder="Invitation code"
             autoComplete="off"
+            value={formData.invitationCode}
+            onChange={e =>
+              setFormData({ ...formData, invitationCode: e.target.value })
+            }
             fluid
           />
           <Button type="submit" color="teal" fluid size="large">

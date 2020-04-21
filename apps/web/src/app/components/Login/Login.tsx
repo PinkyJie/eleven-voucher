@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useContext } from 'react';
+import React, { useCallback, useState, useContext, useEffect } from 'react';
 import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+import { logScreenView } from '../../../utils/firebase';
 import { loginAndGetToken } from '../../../utils/auth';
 import { Routes } from '../../../utils/constants';
 import { SessionContext } from '../../context';
@@ -31,6 +32,8 @@ export const Login = () => {
     },
     [setToken]
   );
+
+  useEffect(logScreenView, []);
 
   return (
     <>

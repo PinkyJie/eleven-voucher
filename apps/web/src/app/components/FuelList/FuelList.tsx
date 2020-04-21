@@ -3,7 +3,7 @@ import Slider, { Settings } from 'react-slick';
 import styled from '@emotion/styled';
 import { css, Global } from '@emotion/core';
 
-import { logPageView } from '../../../utils/firebase';
+import { logScreenView } from '../../../utils/firebase';
 import { FuelType } from '../../../generated/generated';
 import { FuelPriceContext } from '../../context';
 
@@ -30,7 +30,7 @@ export const FuelList = () => {
 
   const { prices } = useContext(FuelPriceContext);
 
-  useEffect(logPageView, []);
+  useEffect(logScreenView, []);
 
   return (
     <StyledFuelList>
