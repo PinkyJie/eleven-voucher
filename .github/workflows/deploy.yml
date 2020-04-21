@@ -1,4 +1,4 @@
-name: Deploy
+name: Build and Deploy
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,6 +36,7 @@ jobs:
           project_id: ${{ secrets.PROJECT_ID }}
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+          gae_variables: ${{ secrets.GAE_ENV_VARIABLES }}
       - name: Deploy backend
         run: |
           gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=client-secret.json

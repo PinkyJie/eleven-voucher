@@ -47,3 +47,4 @@ schema.gql
 
 # environment variables
 .env
+env.json

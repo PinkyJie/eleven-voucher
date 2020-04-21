@@ -1,5 +1,2 @@
 runtime: nodejs10
 entrypoint: node ./main.js
-
-env_variables:
-  PORT: 8080
