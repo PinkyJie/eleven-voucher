@@ -3,16 +3,23 @@ import { useQuery } from '@apollo/client';
 import { Loader } from 'semantic-ui-react';
 import { useHistory } from 'react-router-dom';
 
+import { firebaseAuth } from '../../../utils/firebase';
+import { Routes } from '../../../utils/constants';
 import {
   GetSessionUserQuery,
   GetSessionUserQueryVariables,
 } from '../../../generated/generated';
-import { getTokenFromStore, saveTokenToStore } from '../../../utils/auth';
+import {
+  getTokenFromStore,
+  saveTokenToStore,
+  removeTokenFromStore,
+} from '../../../utils/auth';
 
 import GET_SESSION_USER_QUERY from './SessionContext.graphql';
 
 export interface SessionContextData {
   user: GetSessionUserQuery['sessionUser'];
+  clearUser: () => void;
   setToken: (token: string) => void;
 }
 
@@ -45,15 +52,23 @@ export const SessionContextProvider = ({
     setToken(_token);
   }, []);
 
+  const clearUser = useCallback(() => {
+    firebaseAuth.signOut();
+    removeTokenFromStore();
+    setUser(null);
+    history.replace(Routes.Login);
+  }, [history]);
+
   useEffect(() => {
     if (data?.sessionUser?.uid) {
       setUser(data.sessionUser);
-      history.replace('/');
+      history.replace(Routes.Home);
     }
   }, [data, token, history]);
 
   const value: SessionContextData = {
     user,
+    clearUser,
     setToken: setTokenHandler,
   };
 

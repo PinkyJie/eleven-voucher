@@ -1,6 +1,7 @@
 import { RouteProps, Route, Redirect } from 'react-router-dom';
 import React, { useContext } from 'react';
 
+import { Routes } from '../../../utils/constants';
 import { SessionContext } from '../../context';
 
 export const PrivateRoute = ({ children, ...rest }: RouteProps) => {
@@ -15,7 +16,7 @@ export const PrivateRoute = ({ children, ...rest }: RouteProps) => {
         ) : (
           <Redirect
             to={{
-              pathname: '/login',
+              pathname: Routes.Login,
             }}
           />
         )

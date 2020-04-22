@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import styled from '@emotion/styled';
 import { Route, Switch, useLocation } from 'react-router-dom';
-import { Header, Image } from 'semantic-ui-react';
+import { Header, Image, Button } from 'semantic-ui-react';
 
 import { Routes } from '../utils/constants';
 import { trackScreenView } from '../utils/firebase';
@@ -13,11 +13,13 @@ import {
   PrivateRoute,
   Signup,
 } from './components';
+import { SessionContext } from './context';
 
 const StyledApp = styled.div`
   min-width: 300px;
   max-width: 600px;
   margin: 50px auto;
+  position: relative;
 `;
 
 const StyledHeader = styled(Header)`
@@ -28,12 +30,29 @@ const StyledMain = styled.main`
   padding: 2.5em;
 `;
 
+const StyledLogoutButton = styled(Button)`
+  position: absolute;
+  top: 0;
+  left: 3em;
+`;
+
 export const App = () => {
   const location = useLocation();
   useEffect(trackScreenView, [location.hash]);
 
+  const { user, clearUser } = useContext(SessionContext);
+
   return (
     <StyledApp>
+      {user && (
+        <StyledLogoutButton
+          color="teal"
+          size="medium"
+          onClick={() => clearUser()}
+        >
+          Logout
+        </StyledLogoutButton>
+      )}
       <Image src="/assets/fuel.png" size="small" centered />
       <StyledHeader as="h2" icon>
         Eleven Voucher
