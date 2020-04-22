@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { parse } from 'query-string';
 
+import { firebaseAnalytics } from '../../../utils/firebase';
 import { loginAndGetToken } from '../../../utils/auth';
 import { extractGraphqlErrorMessage } from '../../../utils/error';
 import {
@@ -12,7 +13,6 @@ import {
 } from '../../../generated/generated';
 import { SessionContext } from '../../context';
 import { Routes } from '../../../utils/constants';
-import { logScreenView } from '../../../utils/firebase';
 
 import SIGNUP_MUTATION from './Signup.graphql';
 
@@ -38,6 +38,9 @@ export const Signup = () => {
       formData.invitationCode &&
       emailRe.exec(formData.email)
     ) {
+      firebaseAnalytics.logEvent('sign_up', {
+        email: formData.email,
+      });
       signup({
         variables: {
           email: formData.email,
@@ -47,8 +50,6 @@ export const Signup = () => {
       });
     }
   }, [formData, signup]);
-
-  useEffect(logScreenView, []);
 
   useEffect(() => {
     const urlQuery = window.location.hash.replace(`#${Routes.Signup}`, '');
@@ -81,6 +82,9 @@ export const Signup = () => {
           rel="noopener noreferrer"
           target="_blank"
           href="https://eleven-voucher.typeform.com/to/Ooi5qA"
+          onClick={() => {
+            firebaseAnalytics.logEvent('generate_lead', {});
+          }}
         >
           <b>HERE</b>
         </a>

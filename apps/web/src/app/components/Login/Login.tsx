@@ -1,8 +1,8 @@
-import React, { useCallback, useState, useContext, useEffect } from 'react';
+import React, { useCallback, useState, useContext } from 'react';
 import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
-import { logScreenView } from '../../../utils/firebase';
+import { firebaseAnalytics } from '../../../utils/firebase';
 import { loginAndGetToken } from '../../../utils/auth';
 import { Routes } from '../../../utils/constants';
 import { SessionContext } from '../../context';
@@ -18,6 +18,9 @@ export const Login = () => {
       const { email, password } = event.currentTarget.elements as any;
       const emailRe = /\S+@\S+\.\S+/;
       if (email.value && password.value && emailRe.exec(email.value)) {
+        firebaseAnalytics.logEvent('login', {
+          email,
+        });
         setLoginError(false);
         setLoading(true);
         try {
@@ -32,8 +35,6 @@ export const Login = () => {
     },
     [setToken]
   );
-
-  useEffect(logScreenView, []);
 
   return (
     <>

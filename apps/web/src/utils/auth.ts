@@ -1,4 +1,4 @@
-import { firebaseAuth } from './firebase';
+import { firebaseAuth, trackError } from './firebase';
 
 const TOKEN_KEY = 'ELEVEN_TOKEN';
 
@@ -18,6 +18,11 @@ export async function loginAndGetToken(
   email: string,
   password: string
 ): Promise<string> {
-  await firebaseAuth.signInWithEmailAndPassword(email, password);
-  return firebaseAuth.currentUser.getIdToken(true);
+  try {
+    await firebaseAuth.signInWithEmailAndPassword(email, password);
+    return firebaseAuth.currentUser.getIdToken(true);
+  } catch (e) {
+    trackError(e.code, e.message);
+    throw e;
+  }
 }

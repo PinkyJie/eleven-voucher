@@ -21,7 +21,7 @@ import bwipjs from 'bwip-js';
 import { format } from 'date-fns';
 
 import { Routes } from '../../../utils/constants';
-import { logScreenView } from '../../../utils/firebase';
+import { firebaseAnalytics } from '../../../utils/firebase';
 import {
   FuelType,
   GetMeAVoucherMutation,
@@ -128,8 +128,6 @@ export const FuelDetail = () => {
 
   const timer = useRef(0);
 
-  useEffect(logScreenView, []);
-
   useEffect(() => {
     if (fuelType) {
       const fuelPrice = prices[fuelType];
@@ -149,6 +147,10 @@ export const FuelDetail = () => {
   useEffect(() => {
     const { account, voucher } = data?.getMeAVoucher || {};
     if (voucher?.code) {
+      firebaseAnalytics.logEvent('view_promotion', {
+        code: voucher.code,
+        fuelType: voucher.fuelType,
+      });
       bwipjs.toCanvas('code', {
         bcid: 'code128',
         text: voucher.code,
@@ -275,7 +277,16 @@ export const FuelDetail = () => {
       Not working? &nbsp;
       <Modal
         trigger={
-          <Button basic compact>
+          <Button
+            onClick={() => {
+              firebaseAnalytics.logEvent('view_item', {
+                fuelType,
+                account: true,
+              });
+            }}
+            basic
+            compact
+          >
             Show me the account instead
           </Button>
         }

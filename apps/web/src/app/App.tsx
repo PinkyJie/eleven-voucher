@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from '@emotion/styled';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, useLocation } from 'react-router-dom';
 import { Header, Image } from 'semantic-ui-react';
 
 import { Routes } from '../utils/constants';
+import { trackScreenView } from '../utils/firebase';
 
 import {
   FuelList,
@@ -28,6 +29,9 @@ const StyledMain = styled.main`
 `;
 
 export const App = () => {
+  const location = useLocation();
+  useEffect(trackScreenView, [location.hash]);
+
   return (
     <StyledApp>
       <Image src="/assets/fuel.png" size="small" centered />
