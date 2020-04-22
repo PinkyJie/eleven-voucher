@@ -19,7 +19,6 @@ const StyledApp = styled.div`
   min-width: 300px;
   max-width: 600px;
   margin: 50px auto;
-  position: relative;
 `;
 
 const StyledHeader = styled(Header)`
@@ -31,9 +30,9 @@ const StyledMain = styled.main`
 `;
 
 const StyledLogoutButton = styled(Button)`
-  position: absolute;
-  top: 0;
-  left: 3em;
+  position: fixed;
+  top: 1em;
+  left: 1em;
 `;
 
 export const App = () => {
