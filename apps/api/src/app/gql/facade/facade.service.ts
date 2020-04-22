@@ -48,7 +48,13 @@ export class FacadeService {
   }
 
   private async registerAccount() {
-    const registerData = getFakeAccount();
+    let registerData = getFakeAccount();
+    let accountDoc = await this.dbService.getAccountByEmail(registerData.email);
+    while (accountDoc.exists) {
+      registerData = getFakeAccount();
+      accountDoc = await this.dbService.getAccountByEmail(registerData.email);
+    }
+
     const registerResponse = await this.accountService.register(
       registerData.email,
       registerData.password,
