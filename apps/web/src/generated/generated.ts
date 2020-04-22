@@ -165,6 +165,8 @@ export type Mutation = {
   refreshVoucher: AccountAndVoucher;
   /** Sign up for new user. */
   signup: SessionUser;
+  /** Process the invitation form submitted by "lastHours" and send invitation email. */
+  processInvitationForm: Scalars['Boolean'];
 };
 
 
@@ -208,6 +210,11 @@ export type MutationSignupArgs = {
   invitationCode: Scalars['String'];
   password: Scalars['String'];
   email: Scalars['String'];
+};
+
+
+export type MutationProcessInvitationFormArgs = {
+  lastHours: Scalars['Float'];
 };
 
 export type NewAccount = {

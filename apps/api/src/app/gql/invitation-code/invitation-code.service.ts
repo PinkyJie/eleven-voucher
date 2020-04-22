@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { startOfToday } from 'date-fns';
+import { subHours } from 'date-fns';
 import faker from 'faker';
 import sgMail from '@sendgrid/mail';
 
@@ -29,14 +29,16 @@ export class InvitationCodeService {
     private dbService: DbService
   ) {}
 
-  private async getEmailsFromInvitationForm(): Promise<string[]> {
-    this.logger.info('Get emails from invitation form', {
+  private async getEmailsFromInvitationForm(
+    lastHours: number
+  ): Promise<string[]> {
+    this.logger.info(`Retrieve emails submitted by last ${lastHours} hours`, {
       ...this.loggerInfo,
     });
     const response = await this.apiService.request({
       url: `${this.formUrl}/responses`,
       params: {
-        since: startOfToday(),
+        since: subHours(new Date(), lastHours),
         completed: true,
       },
       headers: {
@@ -92,8 +94,8 @@ export class InvitationCodeService {
     }
   }
 
-  async processInvitationForm(): Promise<boolean> {
-    const emails = await this.getEmailsFromInvitationForm();
+  async processInvitationForm(lastHours: number): Promise<boolean> {
+    const emails = await this.getEmailsFromInvitationForm(lastHours);
     for (const email of emails) {
       const invitationDoc = await this.dbService.getInvitationByEmail(email);
       if (!invitationDoc.exists) {

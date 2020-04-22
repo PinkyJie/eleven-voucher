@@ -1,6 +1,4 @@
-import { Resolver, Mutation } from '@nestjs/graphql';
-
-import { PublicAccess } from '../auth/auth.decorator';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 
 import { InvitationCodeService } from './invitation-code.service';
 
@@ -8,11 +6,13 @@ import { InvitationCodeService } from './invitation-code.service';
 export class InvitationCodeResolver {
   constructor(private invitationCodeService: InvitationCodeService) {}
 
-  @PublicAccess()
   @Mutation(() => Boolean, {
-    description: 'Process the invitation form and send invitation email.',
+    description:
+      'Process the invitation form submitted by "lastHours" and send invitation email.',
   })
-  async processInvitationForm(): Promise<boolean> {
-    return this.invitationCodeService.processInvitationForm();
+  async processInvitationForm(
+    @Args('lastHours') lastHours: number
+  ): Promise<boolean> {
+    return this.invitationCodeService.processInvitationForm(lastHours);
   }
 }
