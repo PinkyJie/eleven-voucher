@@ -7,7 +7,7 @@ export function trackScreenView() {
   console.log(`screen: ${window.location.hash}`);
   firebaseAnalytics.logEvent('screen_view', {
     // eslint-disable-next-line @typescript-eslint/camelcase
-    app_name: 'Eleven Voucher',
+    app_name: window.location.hash,
     // eslint-disable-next-line @typescript-eslint/camelcase
     screen_name: window.location.hash,
   });

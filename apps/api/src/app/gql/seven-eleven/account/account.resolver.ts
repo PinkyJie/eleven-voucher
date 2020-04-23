@@ -1,4 +1,4 @@
-import { Resolver, Args, Query, Mutation } from '@nestjs/graphql';
+import { Resolver, Args, Mutation } from '@nestjs/graphql';
 
 import { Account } from './account.model';
 import { AccountService } from './account.service';
@@ -7,11 +7,6 @@ import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 @Resolver()
 export class AccountResolver {
   constructor(private accountService: AccountService) {}
-
-  @Query(() => String, { description: 'Health check' })
-  healthCheck(): string {
-    return 'OK';
-  }
 
   @Mutation(() => Boolean, { description: 'Register a new account' })
   async registerAccount(

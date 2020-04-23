@@ -1,4 +1,4 @@
-import { Resolver, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Args, Mutation, Query } from '@nestjs/graphql';
 
 import { PublicAccess } from '../auth/auth.decorator';
 
@@ -9,6 +9,12 @@ import { GetMeAVoucherInput, RefreshVoucherInput } from './facade.dto';
 @Resolver()
 export class FacadeResolver {
   constructor(private facadeService: FacadeService) {}
+
+  @PublicAccess()
+  @Query(() => String, { description: 'Health check' })
+  healthCheck(): string {
+    return 'OK';
+  }
 
   @Mutation(() => AccountAndVoucher, {
     description: 'Get a voucher directly.',
