@@ -31,7 +31,7 @@ export class AuthService {
     try {
       const decodedToken = await this.auth.verifyIdToken(token, true);
       if (!decodedToken.invitationCode) {
-        this.logger.error(`Token does not have invitation code`, {
+        this.logger.info(`Token does not have invitation code`, {
           ...this.loggerInfo,
           meta: {
             token,
@@ -55,7 +55,7 @@ export class AuthService {
     } catch (e) {
       if (e.code === 'auth/id-token-expired') {
         // ignore error
-        this.logger.error(`Token is expired`, {
+        this.logger.info(`Token is expired`, {
           ...this.loggerInfo,
           meta: {
             token,
@@ -74,7 +74,7 @@ export class AuthService {
   ): Promise<SessionUser> {
     try {
       await this.auth.getUserByEmail(email);
-      this.logger.error('Email already exists', {
+      this.logger.info('Email already exists', {
         ...this.loggerInfo,
         meta: {
           email,
@@ -93,7 +93,7 @@ export class AuthService {
       !invitationDoc.exists ||
       invitationDoc.get('invitationCode') !== invitationCode
     ) {
-      this.logger.error('No invitation code attached to this email', {
+      this.logger.info('No invitation code attached to this email', {
         ...this.loggerInfo,
         meta: {
           email,
