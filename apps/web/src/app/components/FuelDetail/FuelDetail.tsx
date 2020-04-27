@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -30,6 +30,7 @@ import {
   RefreshVoucherMutationVariables,
 } from '../../../generated/generated';
 import { FuelPriceContext } from '../../context';
+import { VoucherScreen } from '../VoucherScreen';
 
 import {
   GetMeAVoucher as GET_ME_A_VOUCHER_MUTATION,
@@ -112,6 +113,7 @@ function pollRefreshedVoucher(
 }
 
 export const FuelDetail = () => {
+  const [showApp, setShowApp] = useState(false);
   const { fuelType: fuelTypeInRouter } = useParams<FuelDetailRouterParams>();
   const { prices } = useContext(FuelPriceContext);
   const fuelType = convertRouterParamsToFuelType(fuelTypeInRouter);
@@ -242,7 +244,15 @@ export const FuelDetail = () => {
   );
 
   const voucherSegment = data && (
-    <Segment attached textAlign="center">
+    <Segment
+      attached
+      textAlign="center"
+      onClick={() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (document.documentElement as any).webkitRequestFullscreen();
+        setShowApp(true);
+      }}
+    >
       <StyledCanvas id="code" />
       {(refreshedVoucher?.refreshVoucher.voucher?.status === 1 ||
         refreshedVoucher?.refreshVoucher.voucher?.status === 2) && (
@@ -334,6 +344,12 @@ export const FuelDetail = () => {
             {voucherMessage}
             {voucherSegment}
             {accountInfo}
+            {showApp && (
+              <VoucherScreen
+                voucher={data?.getMeAVoucher?.voucher}
+                onClick={() => setShowApp(false)}
+              />
+            )}
           </>
         )
       ) : (

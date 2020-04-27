@@ -3,3 +3,4 @@ export * from './FuelList';
 export * from './PrivateRoute';
 export * from './Login';
 export * from './Signup';
+export * from './VoucherScreen';
