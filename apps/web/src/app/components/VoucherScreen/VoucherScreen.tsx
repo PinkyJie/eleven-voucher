@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import styled from '@emotion/styled';
+import { css } from '@emotion/core';
 import { format, differenceInDays } from 'date-fns';
 import bwipjs from 'bwip-js';
 
@@ -16,8 +17,6 @@ const StyledContainer = styled.div`
 
 const StyledTime = styled.div`
   color: white;
-  top: 0.6%;
-  left: 4%;
   position: absolute;
   font-weight: bold;
 `;
@@ -25,75 +24,47 @@ const StyledTime = styled.div`
 const StyledFuelTypeTop = styled.div`
   position: absolute;
   color: white;
-  top: 19.5%;
-  font-size: 17px;
-  left: 47%;
+  font-size: 3vw;
 `;
 
 const StyledFuelTypeBottom = styled.div`
   position: absolute;
   color: #354945;
-  top: 80.5%;
-  left: 2%;
-  font-size: 12px;
+  font-size: 2.7vw;
 `;
 
 const StyledFuelPriceDigit = styled.div`
   position: absolute;
   font-weight: bold;
-  font-size: 68px;
+  font-size: 15.4vw;
   color: white;
-  top: 28%;
 `;
 
-const StyledFuelPriceDigit1 = styled(StyledFuelPriceDigit)`
-  left: 9.5%;
-`;
-
-const StyledFuelPriceDigit1Gray = styled(StyledFuelPriceDigit1)`
+const StyledFuelPriceDigitGray = styled(StyledFuelPriceDigit)`
   color: #9b9b9c;
-`;
-
-const StyledFuelPriceDigit2 = styled(StyledFuelPriceDigit)`
-  left: 28.5%;
-`;
-
-const StyledFuelPriceDigit3 = styled(StyledFuelPriceDigit)`
-  left: 47.5%;
-`;
-
-const StyledFuelPriceDigit4 = styled(StyledFuelPriceDigit)`
-  left: 71%;
 `;
 
 const StyledExpireTime = styled.div`
   color: #ee3e30;
   position: absolute;
-  top: 61.4%;
-  left: 17%;
-  font-size: 13px;
+  font-size: 2.9vw;
 `;
 
 const StyledExpireDay = styled.div`
   color: #ee3e30;
   position: absolute;
-  top: 61.4%;
-  right: 4%;
-  font-size: 13px;
+  font-size: 2.9vw;
   font-weight: bold;
 `;
 
 const StyledVoucherContainer = styled.div`
   position: absolute;
-  top: 66.5%;
-  left: 5%;
 `;
 
 const StyledVoucherCodeText = styled.div`
   position: absolute;
   width: 100%;
-  top: 75.5%;
-  font-size: 15px;
+  font-size: 3.4vw;
   text-align: center;
 `;
 
@@ -104,6 +75,65 @@ const fuelNameMap = {
   [FuelType.U98]: 'Supreme+ 98',
   [FuelType.Diesel]: 'Special Diesel',
   [FuelType.LPG]: 'AutoGas',
+};
+
+const backgroundImageSize = {
+  width: 1440,
+  height: 2880,
+};
+
+interface CoordinatesType {
+  [key: string]: {
+    x: number;
+    y: number;
+  };
+}
+
+const coordinates: CoordinatesType = {
+  timeText: {
+    x: 52.5,
+    y: 16,
+  },
+  fuelTypeTop: {
+    x: 675,
+    y: 501,
+  },
+  digit1: {
+    x: 140,
+    y: 707.7,
+  },
+  digit2: {
+    x: 425,
+    y: 707.7,
+  },
+  digit3: {
+    x: 700,
+    y: 707.7,
+  },
+  digit4: {
+    x: 1025,
+    y: 707.7,
+  },
+  expireTime: {
+    x: 235,
+    y: 1570,
+  },
+  expireDay: {
+    x: 50,
+    y: 1570,
+  },
+  code: {
+    x: 70.1,
+    y: 1702.7,
+  },
+  codeText: {
+    x: 0,
+    y: 1934,
+  },
+  fuelTypeBottom: {
+    x: 35,
+    y: 2060,
+  },
 };
 
 export interface VoucherScreenProps {
@@ -119,7 +149,23 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
       height: 9,
       width: 66,
     });
-  });
+  }, [voucher.code]);
+
+  const viewportWidth = Math.max(
+    document.documentElement.clientWidth,
+    window.innerWidth || 0
+  );
+  const ratio = viewportWidth / backgroundImageSize.width;
+  const responsiveCoordinates = Object.keys(coordinates).reduce(
+    (result, key) => {
+      result[key] = {
+        x: Number((coordinates[key].x * ratio).toFixed(1)),
+        y: Number((coordinates[key].y * ratio).toFixed(1)),
+      };
+      return result;
+    },
+    {} as CoordinatesType
+  );
 
   const voucherPriceDigits = voucher.fuelPrice.toString().split('');
   if (voucherPriceDigits.length < 5) {
@@ -145,27 +191,103 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
   return (
     <StyledContainer onClick={onClick}>
       <img alt="bg" src="assets/voucher-bg.png" width="100%" />
-      <StyledTime>{format(new Date(), 'HH:mm')}</StyledTime>
-      <StyledFuelTypeTop>
+      <StyledTime
+        css={css`
+          top: ${responsiveCoordinates.timeText.y}px;
+          left: ${responsiveCoordinates.timeText.x}px;
+        `}
+      >
+        {format(new Date(), 'HH:mm')}
+      </StyledTime>
+      <StyledFuelTypeTop
+        css={css`
+          top: ${responsiveCoordinates.fuelTypeTop.y}px;
+          left: ${responsiveCoordinates.fuelTypeTop.x}px;
+        `}
+      >
         {fuelNameMap[voucher.fuelType].toUpperCase()}
       </StyledFuelTypeTop>
       {voucherPriceDigits[0] === '0' ? (
-        <StyledFuelPriceDigit1Gray>0</StyledFuelPriceDigit1Gray>
+        <StyledFuelPriceDigitGray
+          css={css`
+            top: ${responsiveCoordinates.digit1.y}px;
+            left: ${responsiveCoordinates.digit1.x}px;
+          `}
+        >
+          0
+        </StyledFuelPriceDigitGray>
       ) : (
-        <StyledFuelPriceDigit1>{voucherPriceDigits[0]}</StyledFuelPriceDigit1>
+        <StyledFuelPriceDigit
+          css={css`
+            top: ${responsiveCoordinates.digit1.y}px;
+            left: ${responsiveCoordinates.digit1.x}px;
+          `}
+        >
+          {voucherPriceDigits[0]}
+        </StyledFuelPriceDigit>
       )}
-      <StyledFuelPriceDigit2>{voucherPriceDigits[1]}</StyledFuelPriceDigit2>
-      <StyledFuelPriceDigit3>{voucherPriceDigits[2]}</StyledFuelPriceDigit3>
-      <StyledFuelPriceDigit4>{voucherPriceDigits[4]}</StyledFuelPriceDigit4>
-      <StyledExpireTime>
+      <StyledFuelPriceDigit
+        css={css`
+          top: ${responsiveCoordinates.digit2.y}px;
+          left: ${responsiveCoordinates.digit2.x}px;
+        `}
+      >
+        {voucherPriceDigits[1]}
+      </StyledFuelPriceDigit>
+      <StyledFuelPriceDigit
+        css={css`
+          top: ${responsiveCoordinates.digit3.y}px;
+          left: ${responsiveCoordinates.digit3.x}px;
+        `}
+      >
+        {voucherPriceDigits[2]}
+      </StyledFuelPriceDigit>
+      <StyledFuelPriceDigit
+        css={css`
+          top: ${responsiveCoordinates.digit4.y}px;
+          left: ${responsiveCoordinates.digit4.x}px;
+        `}
+      >
+        {voucherPriceDigits[4]}
+      </StyledFuelPriceDigit>
+      <StyledExpireTime
+        css={css`
+          top: ${responsiveCoordinates.expireTime.y}px;
+          left: ${responsiveCoordinates.expireTime.x}px;
+        `}
+      >
         {format(new Date(voucher.expiredAt * 1000), 'h:mm aaa d/M/yy')}
       </StyledExpireTime>
-      <StyledExpireDay>{daysLeftText}</StyledExpireDay>
-      <StyledVoucherContainer>
+      <StyledExpireDay
+        css={css`
+          top: ${responsiveCoordinates.expireDay.y}px;
+          right: ${responsiveCoordinates.expireDay.x}px;
+        `}
+      >
+        {daysLeftText}
+      </StyledExpireDay>
+      <StyledVoucherContainer
+        css={css`
+          top: ${responsiveCoordinates.code.y}px;
+          left: ${responsiveCoordinates.code.x}px;
+        `}
+      >
         <canvas id="appCode" />
       </StyledVoucherContainer>
-      <StyledVoucherCodeText>{voucherCodeText}</StyledVoucherCodeText>
-      <StyledFuelTypeBottom>
+      <StyledVoucherCodeText
+        css={css`
+          top: ${responsiveCoordinates.codeText.y}px;
+          left: ${responsiveCoordinates.codeText.x}px;
+        `}
+      >
+        {voucherCodeText}
+      </StyledVoucherCodeText>
+      <StyledFuelTypeBottom
+        css={css`
+          top: ${responsiveCoordinates.fuelTypeBottom.y}px;
+          left: ${responsiveCoordinates.fuelTypeBottom.x}px;
+        `}
+      >
         NEAREST 7-ELEVEN WITH &nbsp;
         {fuelNameMap[voucher.fuelType].toUpperCase()}
       </StyledFuelTypeBottom>

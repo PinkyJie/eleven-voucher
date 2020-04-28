@@ -66,6 +66,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.5.4",
     "semantic-ui-react": "^0.88.2",
+    "styled-components": "^5.1.0",
     "uuid": "^7.0.2",
     "winston": "^3.2.1"
   },

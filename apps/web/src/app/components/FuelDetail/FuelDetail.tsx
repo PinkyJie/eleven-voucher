@@ -248,8 +248,8 @@ export const FuelDetail = () => {
       attached
       textAlign="center"
       onClick={() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (document.documentElement as any).webkitRequestFullscreen();
+        firebaseAnalytics.logEvent('select_promotion', {});
+        document.documentElement.webkitRequestFullscreen();
         setShowApp(true);
       }}
     >
@@ -347,7 +347,10 @@ export const FuelDetail = () => {
             {showApp && (
               <VoucherScreen
                 voucher={data?.getMeAVoucher?.voucher}
-                onClick={() => setShowApp(false)}
+                onClick={() => {
+                  document.exitFullscreen();
+                  setShowApp(false);
+                }}
               />
             )}
           </>
