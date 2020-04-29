@@ -202,7 +202,7 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
       width,
       height,
     });
-  }, [ratio, viewportWidth, voucher.code]);
+  }, [voucher.code]);
 
   return (
     <StyledContainer onClick={onClick}>
