@@ -19,6 +19,7 @@ const StyledTime = styled.div`
   color: white;
   position: absolute;
   font-weight: bold;
+  font-size: 4vw;
 `;
 
 const StyledFuelTypeTop = styled.div`
@@ -59,6 +60,13 @@ const StyledExpireDay = styled.div`
 
 const StyledVoucherContainer = styled.div`
   position: absolute;
+  width: 100%;
+  display: flex;
+  padding: 9px 8%;
+`;
+
+const StyledCanvas = styled.canvas`
+  flex: 1;
 `;
 
 const StyledVoucherCodeText = styled.div`
@@ -70,7 +78,7 @@ const StyledVoucherCodeText = styled.div`
 
 const fuelNameMap = {
   [FuelType.E10]: 'Special E10',
-  [FuelType.U91]: 'Special Unleaded 91',
+  [FuelType.U91]: 'Special Unleaded',
   [FuelType.U95]: 'Extra 95',
   [FuelType.U98]: 'Supreme+ 98',
   [FuelType.Diesel]: 'Special Diesel',
@@ -80,6 +88,11 @@ const fuelNameMap = {
 const backgroundImageSize = {
   width: 1440,
   height: 2880,
+};
+
+const barCodeFrameSize = {
+  width: 1366,
+  height: 257,
 };
 
 interface CoordinatesType {
@@ -123,8 +136,8 @@ const coordinates: CoordinatesType = {
     y: 1570,
   },
   code: {
-    x: 70.1,
-    y: 1702.7,
+    x: 0,
+    y: 1670,
   },
   codeText: {
     x: 0,
@@ -142,18 +155,9 @@ export interface VoucherScreenProps {
 }
 
 export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
-  useEffect(() => {
-    bwipjs.toCanvas('appCode', {
-      bcid: 'code128',
-      text: voucher.code,
-      height: 9,
-      width: 66,
-    });
-  }, [voucher.code]);
-
-  const viewportWidth = Math.max(
-    document.documentElement.clientWidth,
-    window.innerWidth || 0
+  const viewportWidth = Math.min(
+    Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+    backgroundImageSize.width
   );
   const ratio = viewportWidth / backgroundImageSize.width;
   const responsiveCoordinates = Object.keys(coordinates).reduce(
@@ -174,7 +178,8 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
 
   const voucherCodeText = voucher.code.replace(
     /(\d{4})(\d{4})(\d{4})(\d{1})/g,
-    (_, str1, str2, str3, str4) => `${str1}  ${str2}  ${str3}  ${str4}`
+    (_, str1, str2, str3, str4) =>
+      `${str1} &nbsp; ${str2} &nbsp; ${str3} &nbsp; ${str4}`
   );
 
   const daysLeft = differenceInDays(
@@ -187,6 +192,17 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
   } else if (daysLeft === 1) {
     daysLeftText = 'Tomorrow';
   }
+
+  useEffect(() => {
+    const width = 65;
+    const height = 10;
+    bwipjs.toCanvas('appCode', {
+      bcid: 'code128',
+      text: voucher.code,
+      width,
+      height,
+    });
+  }, [ratio, viewportWidth, voucher.code]);
 
   return (
     <StyledContainer onClick={onClick}>
@@ -270,18 +286,18 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
         css={css`
           top: ${responsiveCoordinates.code.y}px;
           left: ${responsiveCoordinates.code.x}px;
+          height: ${Math.floor(barCodeFrameSize.height * ratio)}px;
         `}
       >
-        <canvas id="appCode" />
+        <StyledCanvas id="appCode" />
       </StyledVoucherContainer>
       <StyledVoucherCodeText
         css={css`
           top: ${responsiveCoordinates.codeText.y}px;
           left: ${responsiveCoordinates.codeText.x}px;
         `}
-      >
-        {voucherCodeText}
-      </StyledVoucherCodeText>
+        dangerouslySetInnerHTML={{ __html: voucherCodeText }}
+      />
       <StyledFuelTypeBottom
         css={css`
           top: ${responsiveCoordinates.fuelTypeBottom.y}px;
