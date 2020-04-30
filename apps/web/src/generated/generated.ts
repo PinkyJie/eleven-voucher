@@ -167,6 +167,8 @@ export type Mutation = {
   signup: SessionUser;
   /** Process the invitation form submitted by "lastHours" and send invitation email. */
   processInvitationForm: Scalars['Boolean'];
+  /** Send invitation code to multiple emails. */
+  sendInvitationEmails: Scalars['Boolean'];
 };
 
 
@@ -217,6 +219,11 @@ export type MutationProcessInvitationFormArgs = {
   lastHours: Scalars['Float'];
 };
 
+
+export type MutationSendInvitationEmailsArgs = {
+  sendInvitationEmailsInput: SendInvitationEmailsInput;
+};
+
 export type NewAccount = {
    __typename?: 'NewAccount';
   /** The account email address */
@@ -227,8 +234,6 @@ export type NewAccount = {
 
 export type Query = {
    __typename?: 'Query';
-  /** Health check */
-  healthCheck: Scalars['String'];
   /** Retrieve best fuel price for all types. */
   fuel: Fuel;
   /** Retrieve the voucher list. */
@@ -241,6 +246,8 @@ export type Query = {
   emailMessage?: Maybe<EmailMessageWithBody>;
   /** Retrieve the verification code in the email. */
   findVerificationCodeInEmail?: Maybe<Scalars['String']>;
+  /** Health check */
+  healthCheck: Scalars['String'];
   /** Retrieve current logged in session user. */
   sessionUser?: Maybe<SessionUser>;
 };
@@ -303,12 +310,19 @@ export type RegisterAccountInput = {
   dobTimestamp: Scalars['String'];
 };
 
+export type SendInvitationEmailsInput = {
+  /** The email list */
+  emails: Array<Scalars['String']>;
+};
+
 export type SessionUser = {
    __typename?: 'SessionUser';
   /** UID for the user */
   uid: Scalars['String'];
   /** Email address for the user */
   email: Scalars['String'];
+  /** Role for the user */
+  role: Scalars['String'];
 };
 
 export type Voucher = {

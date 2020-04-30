@@ -25,10 +25,7 @@ export class AuthResolver {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getSessionUser(@Args('token') token: string): SessionUser {
-    if ('user' in this.ctx.req) {
-      return this.ctx.req['user'];
-    }
-    return null;
+    return this.ctx.req.user;
   }
 
   @PublicAccess()

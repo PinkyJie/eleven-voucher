@@ -4,3 +4,7 @@ export const DEVICE_NAME = 'OnePlus ONEPLUS A0001';
 export const HOST = '711-goodcall.api.tigerspike.com';
 export const BASE_URL = `https://${HOST}/api/v1/`;
 export const VARIABLE = 'yvktroj08t9jltr3ze0isf7r4wygb39s';
+
+export enum Role {
+  Admin = 'admin',
+}

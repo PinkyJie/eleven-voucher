@@ -7,4 +7,7 @@ export class SessionUser {
 
   @Field({ description: 'Email address for the user' })
   email: string;
+
+  @Field({ description: 'Role for the user' })
+  role?: string;
 }

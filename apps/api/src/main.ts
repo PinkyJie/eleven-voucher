@@ -6,6 +6,7 @@ import { Logger } from '@nestjs/common';
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
 import { FirebaseAuthGuard } from './app/gql/auth/auth.guard';
+import { RolesGuard } from './app/gql/auth/roles.guard';
 
 require('dotenv').config();
 
@@ -28,6 +29,7 @@ export const createNestServer = async expressInstance => {
 
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new FirebaseAuthGuard(reflector));
+  app.useGlobalGuards(new RolesGuard(reflector));
 
   return app.listen(port, '');
 };

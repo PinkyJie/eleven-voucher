@@ -51,6 +51,7 @@ export class AuthService {
       return {
         uid: decodedToken.uid,
         email: decodedToken.firebase.identities.email[0],
+        role: decodedToken.role,
       };
     } catch (e) {
       if (e.code === 'auth/id-token-expired') {

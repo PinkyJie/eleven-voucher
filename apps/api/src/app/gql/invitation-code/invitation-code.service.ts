@@ -59,8 +59,8 @@ export class InvitationCodeService {
     return emails;
   }
 
-  async sendEmail(email: string, invitationCode: string) {
-    this.logger.info(`Send invitation form to ${email}`, {
+  private async sendEmail(email: string, invitationCode: string) {
+    this.logger.info(`Send invitation email to ${email}`, {
       ...this.loggerInfo,
       meta: {
         email,
@@ -78,8 +78,8 @@ export class InvitationCodeService {
         },
         templateId: 'd-c229ada9ecf54cb7af2c5db02d7051c6',
         dynamicTemplateData: {
+          email,
           invitationCode,
-          signupLink: `https://eleven-voucher.web.app/#/signup?email=${email}&invitationCode=${invitationCode}`,
         },
       });
     } catch (error) {
@@ -94,8 +94,12 @@ export class InvitationCodeService {
     }
   }
 
-  async processInvitationForm(lastHours: number): Promise<boolean> {
+  async processInvitationForm(lastHours: number) {
     const emails = await this.getEmailsFromInvitationForm(lastHours);
+    await this.sendInvitationEmails(emails);
+  }
+
+  async sendInvitationEmails(emails: string[]) {
     for (const email of emails) {
       const invitationDoc = await this.dbService.getInvitationByEmail(email);
       if (!invitationDoc.exists) {
@@ -104,6 +108,5 @@ export class InvitationCodeService {
         await this.sendEmail(email, invitationCode);
       }
     }
-    return true;
   }
 }
