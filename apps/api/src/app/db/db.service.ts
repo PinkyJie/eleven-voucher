@@ -2,8 +2,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import admin from 'firebase-admin';
 
 import { FuelType } from '../gql/seven-eleven/fuel/fuel.model';
-import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
 import { VoucherStatus } from '../gql/seven-eleven/voucher/voucher.model';
+import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
 import { firestoreDb } from '../utils/firebase-admin';
 
 import { DbAccount, DbFuelPrice, DbVoucher } from './db.model';

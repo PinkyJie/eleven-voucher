@@ -1,11 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { AxiosResponse } from 'axios';
 import { CONTEXT } from '@nestjs/graphql';
+import { AxiosResponse } from 'axios';
 
-import { DEVICE_NAME, ANDROID_VERSION } from '../../../utils/constant';
-import { GqlContext } from '../../gql.context';
 import { ApiService } from '../../../api/api.service';
 import { WINSTON_LOGGER, Logger } from '../../../logger/winston-logger';
+import { DEVICE_NAME, ANDROID_VERSION } from '../../../utils/constant';
+import { GqlContext } from '../../gql.context';
 
 import { Account } from './account.model';
 

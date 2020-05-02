@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import styled from '@emotion/styled';
 import { css } from '@emotion/core';
-import { format, differenceInDays } from 'date-fns';
+import styled from '@emotion/styled';
 import bwipjs from 'bwip-js';
+import { format, differenceInDays } from 'date-fns';
+import React, { useEffect } from 'react';
 
 import { Voucher, FuelType } from '../../../generated/generated';
 

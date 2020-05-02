@@ -1,10 +1,10 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 
-import { Roles } from '../auth/auth.decorator';
 import { Role } from '../../utils/constant';
+import { Roles } from '../auth/auth.decorator';
 
-import { InvitationCodeService } from './invitation-code.service';
 import { SendInvitationEmailsInput } from './invitation-code.dto';
+import { InvitationCodeService } from './invitation-code.service';
 
 @Resolver()
 export class InvitationCodeResolver {

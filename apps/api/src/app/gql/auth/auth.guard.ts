@@ -1,8 +1,8 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 
 @Injectable()
 export class FirebaseAuthGuard extends AuthGuard('firebase-jwt') {

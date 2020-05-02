@@ -2,9 +2,9 @@ import { Resolver, Args, Mutation, Query } from '@nestjs/graphql';
 
 import { PublicAccess } from '../auth/auth.decorator';
 
-import { FacadeService } from './facade.service';
-import { AccountAndVoucher } from './facade.model';
 import { GetMeAVoucherInput, RefreshVoucherInput } from './facade.dto';
+import { AccountAndVoucher } from './facade.model';
+import { FacadeService } from './facade.service';
 
 @Resolver()
 export class FacadeResolver {

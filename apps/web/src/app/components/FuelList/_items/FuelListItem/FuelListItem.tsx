@@ -1,8 +1,8 @@
-import React from 'react';
 import styled from '@emotion/styled';
-import { Card, Button, Image } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Card, Button, Image } from 'semantic-ui-react';
 
 import { FuelType } from '../../../../../generated/generated';
 

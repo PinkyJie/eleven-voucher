@@ -1,11 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
+import sgMail from '@sendgrid/mail';
 import { subHours } from 'date-fns';
 import faker from 'faker';
-import sgMail from '@sendgrid/mail';
 
-import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { ApiService } from '../../api/api.service';
 import { DbService } from '../../db/db.service';
+import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 
 interface FormResponse {
   items: {

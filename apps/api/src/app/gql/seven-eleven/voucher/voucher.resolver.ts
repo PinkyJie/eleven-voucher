@@ -1,8 +1,8 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 
+import { LockInInput } from './voucher.dto';
 import { Voucher } from './voucher.model';
 import { VoucherService } from './voucher.service';
-import { LockInInput } from './voucher.dto';
 
 @Resolver()
 export class VoucherResolver {

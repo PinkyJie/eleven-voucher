@@ -1,18 +1,18 @@
-import React, { useContext, useCallback, useEffect, useState } from 'react';
-import { Form, Segment, Button, Message } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { parse } from 'query-string';
+import React, { useContext, useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Form, Segment, Button, Message } from 'semantic-ui-react';
 
-import { firebaseAnalytics } from '../../../utils/firebase';
-import { loginAndGetToken } from '../../../utils/auth';
-import { extractGraphqlErrorMessage } from '../../../utils/error';
 import {
   SignupMutation,
   SignupMutationVariables,
 } from '../../../generated/generated';
-import { SessionContext } from '../../context';
+import { loginAndGetToken } from '../../../utils/auth';
 import { Routes } from '../../../utils/constants';
+import { extractGraphqlErrorMessage } from '../../../utils/error';
+import { firebaseAnalytics } from '../../../utils/firebase';
+import { SessionContext } from '../../context';
 
 import SIGNUP_MUTATION from './Signup.graphql';
 

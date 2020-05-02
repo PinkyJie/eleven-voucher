@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 
-import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { ApiService } from '../../api/api.service';
+import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 
 import { EmailMessage, EmailMessageWithBody } from './email.model';
 

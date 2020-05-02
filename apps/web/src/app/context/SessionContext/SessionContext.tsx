@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
-import { Loader } from 'semantic-ui-react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
+import { Loader } from 'semantic-ui-react';
 
-import { firebaseAuth } from '../../../utils/firebase';
-import { Routes } from '../../../utils/constants';
 import {
   GetSessionUserQuery,
   GetSessionUserQueryVariables,
@@ -14,6 +12,8 @@ import {
   saveTokenToStore,
   removeTokenFromStore,
 } from '../../../utils/auth';
+import { Routes } from '../../../utils/constants';
+import { firebaseAuth } from '../../../utils/firebase';
 
 import GET_SESSION_USER_QUERY from './SessionContext.graphql';
 

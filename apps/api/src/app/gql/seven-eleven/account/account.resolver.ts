@@ -1,8 +1,8 @@
 import { Resolver, Args, Mutation } from '@nestjs/graphql';
 
+import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 import { Account } from './account.model';
 import { AccountService } from './account.service';
-import { LoginInput, LogoutInput, RegisterAccountInput } from './account.dto';
 
 @Resolver()
 export class AccountResolver {

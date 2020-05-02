@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
 import { useQuery } from '@apollo/client';
+import React, { useContext } from 'react';
 import { Loader } from 'semantic-ui-react';
 
 import {

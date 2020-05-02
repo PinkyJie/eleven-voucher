@@ -1,10 +1,10 @@
 import React, { useCallback, useState, useContext } from 'react';
-import { Form, Segment, Button, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
+import { Form, Segment, Button, Message } from 'semantic-ui-react';
 
-import { firebaseAnalytics } from '../../../utils/firebase';
 import { loginAndGetToken } from '../../../utils/auth';
 import { Routes } from '../../../utils/constants';
+import { firebaseAnalytics } from '../../../utils/firebase';
 import { SessionContext } from '../../context';
 
 export const Login = () => {

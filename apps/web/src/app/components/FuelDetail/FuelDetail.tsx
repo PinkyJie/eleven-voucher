@@ -1,5 +1,12 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+  useMutation,
+  MutationFunctionOptions,
+  FetchResult,
+} from '@apollo/client';
 import styled from '@emotion/styled';
+import bwipjs from 'bwip-js';
+import { format } from 'date-fns';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Segment,
@@ -12,16 +19,7 @@ import {
   Modal,
   Placeholder,
 } from 'semantic-ui-react';
-import {
-  useMutation,
-  MutationFunctionOptions,
-  FetchResult,
-} from '@apollo/client';
-import bwipjs from 'bwip-js';
-import { format } from 'date-fns';
 
-import { Routes } from '../../../utils/constants';
-import { firebaseAnalytics } from '../../../utils/firebase';
 import {
   FuelType,
   GetMeAVoucherMutation,
@@ -29,6 +27,8 @@ import {
   RefreshVoucherMutation,
   RefreshVoucherMutationVariables,
 } from '../../../generated/generated';
+import { Routes } from '../../../utils/constants';
+import { firebaseAnalytics } from '../../../utils/firebase';
 import { FuelPriceContext } from '../../context';
 import { VoucherScreen } from '../VoucherScreen';
 

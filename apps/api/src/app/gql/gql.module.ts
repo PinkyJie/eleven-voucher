@@ -4,12 +4,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { environment } from '../../environments/environment';
 import { getDeviceId } from '../utils/device-id';
 
-import { SevenElevenModule } from './seven-eleven/seven-eleven.module';
+import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { FacadeModule } from './facade/facade.module';
 import { GqlContext } from './gql.context';
-import { AuthModule } from './auth/auth.module';
 import { InvitationCodeModule } from './invitation-code/invitation-code.module';
+import { SevenElevenModule } from './seven-eleven/seven-eleven.module';
 
 @Module({
   imports: [

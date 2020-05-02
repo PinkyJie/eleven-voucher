@@ -1,12 +1,12 @@
+import { Logger } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
-import { Logger } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
-import { environment } from './environments/environment';
 import { FirebaseAuthGuard } from './app/gql/auth/auth.guard';
 import { RolesGuard } from './app/gql/auth/roles.guard';
+import { environment } from './environments/environment';
 
 require('dotenv').config();
 

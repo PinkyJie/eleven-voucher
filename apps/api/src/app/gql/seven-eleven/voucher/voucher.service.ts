@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CONTEXT } from '@nestjs/graphql';
 
-import { FuelType } from '../fuel/fuel.model';
-import { GqlContext } from '../../gql.context';
 import { ApiService } from '../../../api/api.service';
 import { WINSTON_LOGGER, Logger } from '../../../logger/winston-logger';
+import { GqlContext } from '../../gql.context';
+import { FuelType } from '../fuel/fuel.model';
 
 import { Voucher } from './voucher.model';
 

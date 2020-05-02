@@ -2,13 +2,13 @@ import { Injectable, Inject } from '@nestjs/common';
 import axios, { AxiosRequestConfig, Method } from 'axios';
 
 import { WINSTON_LOGGER, Logger } from '../logger/winston-logger';
-import { generateTssa } from '../utils/encrypt';
 import {
   BASE_URL,
   ANDROID_VERSION,
   HOST,
   APP_VERSION,
 } from '../utils/constant';
+import { generateTssa } from '../utils/encrypt';
 
 @Injectable()
 export class ApiService {

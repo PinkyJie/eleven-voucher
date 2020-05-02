@@ -1,7 +1,7 @@
+import { css, Global } from '@emotion/core';
+import styled from '@emotion/styled';
 import React, { useContext } from 'react';
 import Slider, { Settings } from 'react-slick';
-import styled from '@emotion/styled';
-import { css, Global } from '@emotion/core';
 
 import { FuelType } from '../../../generated/generated';
 import { FuelPriceContext } from '../../context';

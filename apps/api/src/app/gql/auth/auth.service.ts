@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import admin from 'firebase-admin';
 
-import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { DbService } from '../../db/db.service';
+import { WINSTON_LOGGER, Logger } from '../../logger/winston-logger';
 import { firebaseAuth } from '../../utils/firebase-admin';
 
 import { SessionUser } from './auth.model';

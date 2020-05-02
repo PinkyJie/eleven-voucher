@@ -1,14 +1,14 @@
+import { ApolloProvider } from '@apollo/client';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HashRouter } from 'react-router-dom';
-import { ApolloProvider } from '@apollo/client';
 
 import { App } from './app/App';
-import { client } from './utils/apollo.client';
 import {
   SessionContextProvider,
   FuelPriceContextProvider,
 } from './app/context';
+import { client } from './utils/apollo.client';
 
 ReactDOM.render(
   <React.StrictMode>
