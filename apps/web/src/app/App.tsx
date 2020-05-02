@@ -1,5 +1,5 @@
-import React, { useEffect, useContext } from 'react';
 import styled from '@emotion/styled';
+import React, { useEffect, useContext } from 'react';
 import { Route, Switch, useLocation } from 'react-router-dom';
 import { Header, Image, Button } from 'semantic-ui-react';
 
