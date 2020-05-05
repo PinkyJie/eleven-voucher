@@ -1,7 +1,7 @@
 import { css } from '@emotion/core';
 import styled from '@emotion/styled';
 import bwipjs from 'bwip-js';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, startOfToday, startOfDay } from 'date-fns';
 import React, { useEffect } from 'react';
 
 import { Voucher, FuelType } from '../../../generated/generated';
@@ -183,8 +183,8 @@ export const VoucherScreen = ({ voucher, onClick }: VoucherScreenProps) => {
   );
 
   const daysLeft = differenceInDays(
-    new Date(voucher.expiredAt * 1000),
-    new Date()
+    startOfDay(new Date(voucher.expiredAt * 1000)),
+    startOfToday()
   );
   let daysLeftText = `${daysLeft} days left`;
   if (daysLeft === 0) {
