@@ -63,10 +63,8 @@ export const SessionContextProvider = ({
     if (data?.sessionUser?.uid) {
       setUser(data.sessionUser);
       history.replace(Routes.Home);
-    } else {
-      clearUser();
     }
-  }, [data, token, history, clearUser]);
+  }, [data, token, history]);
 
   const value: SessionContextData = {
     user,
