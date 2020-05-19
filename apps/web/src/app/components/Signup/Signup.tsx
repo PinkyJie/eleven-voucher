@@ -83,7 +83,7 @@ export const Signup = () => {
           target="_blank"
           href="https://eleven-voucher.typeform.com/to/Ooi5qA"
           onClick={() => {
-            firebaseAnalytics.logEvent('generate_lead', {});
+            firebaseAnalytics.logEvent('click_invitation_form', {});
           }}
         >
           <b>HERE</b>

@@ -19,7 +19,7 @@ export const Login = () => {
       const emailRe = /\S+@\S+\.\S+/;
       if (email.value && password.value && emailRe.exec(email.value)) {
         firebaseAnalytics.logEvent('login', {
-          email,
+          email: email.value,
         });
         setLoginError(false);
         setLoading(true);

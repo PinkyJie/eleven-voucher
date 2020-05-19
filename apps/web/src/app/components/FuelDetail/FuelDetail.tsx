@@ -26,6 +26,7 @@ import {
   GetMeAVoucherMutationVariables,
   RefreshVoucherMutation,
   RefreshVoucherMutationVariables,
+  AccountAndVoucherFragment,
 } from '../../../generated/generated';
 import { Routes } from '../../../utils/constants';
 import { firebaseAnalytics } from '../../../utils/firebase';
@@ -93,7 +94,7 @@ function pollRefreshedVoucher(
   ) => Promise<FetchResult<RefreshVoucherMutation>>,
   email: string,
   password: string,
-  voucherId: string,
+  voucher: AccountAndVoucherFragment['voucher'],
   timer: React.MutableRefObject<number>
 ) {
   timer.current = window.setTimeout(async () => {
@@ -102,12 +103,17 @@ function pollRefreshedVoucher(
         refreshVoucherInput: {
           email: email,
           password: password,
-          voucherId,
+          voucherId: voucher.id,
         },
       },
     });
     if (refreshedVoucher.data.refreshVoucher.voucher.status === 0) {
-      pollRefreshedVoucher(refreshVoucher, email, password, voucherId, timer);
+      pollRefreshedVoucher(refreshVoucher, email, password, voucher, timer);
+    } else {
+      firebaseAnalytics.logEvent('voucher_expired', {
+        fuelType: voucher.fuelType,
+        code: voucher.code,
+      });
     }
   }, 5000);
 }
@@ -149,7 +155,7 @@ export const FuelDetail = () => {
   useEffect(() => {
     const { account, voucher } = data?.getMeAVoucher || {};
     if (voucher?.code) {
-      firebaseAnalytics.logEvent('view_promotion', {
+      firebaseAnalytics.logEvent('view_fuel_voucher', {
         code: voucher.code,
         fuelType: voucher.fuelType,
       });
@@ -169,7 +175,7 @@ export const FuelDetail = () => {
         refreshVoucher,
         account.email,
         account.password,
-        voucher.id,
+        voucher,
         timer
       );
     }
@@ -248,7 +254,10 @@ export const FuelDetail = () => {
       attached
       textAlign="center"
       onClick={() => {
-        firebaseAnalytics.logEvent('select_promotion', {});
+        firebaseAnalytics.logEvent('view_voucher_in_app', {
+          code: data.getMeAVoucher.voucher?.code,
+          fuelType: data.getMeAVoucher.voucher?.fuelType,
+        });
         // eslint-disable-next-line no-unused-expressions
         document.documentElement.webkitRequestFullscreen?.();
         setShowApp(true);
@@ -290,9 +299,9 @@ export const FuelDetail = () => {
         trigger={
           <Button
             onClick={() => {
-              firebaseAnalytics.logEvent('view_item', {
+              firebaseAnalytics.logEvent('show_account_info', {
                 fuelType,
-                account: true,
+                email: data.getMeAVoucher.account?.email,
               });
             }}
             basic
