@@ -124,15 +124,20 @@ export const FuelDetail = () => {
   const { prices } = useContext(FuelPriceContext);
   const fuelType = convertRouterParamsToFuelType(fuelTypeInRouter);
 
-  const [getMeAVoucher, { data, loading, error }] = useMutation<
-    GetMeAVoucherMutation,
-    GetMeAVoucherMutationVariables
-  >(GET_ME_A_VOUCHER_MUTATION);
+  const [
+    getMeAVoucher,
+    { data: getMeAVoucherResponse, loading, error },
+  ] = useMutation<GetMeAVoucherMutation, GetMeAVoucherMutationVariables>(
+    GET_ME_A_VOUCHER_MUTATION
+  );
+  const { account, voucher } = getMeAVoucherResponse?.getMeAVoucher || {};
 
-  const [refreshVoucher, { data: refreshedVoucher }] = useMutation<
+  const [refreshVoucher, { data: refreshedVoucherResponse }] = useMutation<
     RefreshVoucherMutation,
     RefreshVoucherMutationVariables
   >(REFRESH_VOUCHER_MUTATION);
+  const { voucher: refreshedVoucher } =
+    refreshedVoucherResponse?.refreshVoucher || {};
 
   const timer = useRef(0);
 
@@ -153,7 +158,6 @@ export const FuelDetail = () => {
   }, [prices, fuelType, getMeAVoucher]);
 
   useEffect(() => {
-    const { account, voucher } = data?.getMeAVoucher || {};
     if (voucher?.code) {
       firebaseAnalytics.logEvent('view_fuel_voucher', {
         code: voucher.code,
@@ -185,7 +189,7 @@ export const FuelDetail = () => {
         clearTimeout(timer.current);
       }
     };
-  }, [data, refreshVoucher]);
+  }, [voucher, account, refreshVoucher]);
 
   const invalidFuelMessage = (
     <Message icon negative attached>
@@ -225,38 +229,35 @@ export const FuelDetail = () => {
     </Segment>
   );
 
-  const voucherMessage = data && (
+  const voucherMessage = voucher && (
     <Message icon info attached>
       <Icon name="barcode" />
       <Message.Content>
         <Message.Header>
-          {data.getMeAVoucher.voucher?.fuelPrice < prices[fuelType].price
+          {voucher.fuelPrice < prices[fuelType].price
             ? 'Magic! Lower than lower'
             : 'Got you covered'}
         </Message.Header>
         Enjoy your voucher for &nbsp;
         <Label color="teal" horizontal>
-          {fuelType} - ${data.getMeAVoucher.voucher?.fuelPrice} c/L
+          {fuelType} - ${voucher.fuelPrice} c/L
         </Label>
         before &nbsp;
         <Label color="teal" horizontal>
-          {format(
-            new Date(data.getMeAVoucher.voucher?.expiredAt * 1000),
-            'HH:mm:ss do MMMM yyyy'
-          )}
+          {format(new Date(voucher.expiredAt * 1000), 'HH:mm:ss do MMMM yyyy')}
         </Label>
       </Message.Content>
     </Message>
   );
 
-  const voucherSegment = data && (
+  const voucherSegment = voucher && (
     <Segment
       attached
       textAlign="center"
       onClick={() => {
         firebaseAnalytics.logEvent('view_voucher_in_app', {
-          code: data.getMeAVoucher.voucher?.code,
-          fuelType: data.getMeAVoucher.voucher?.fuelType,
+          code: voucher.code,
+          fuelType: voucher.fuelType,
         });
         // eslint-disable-next-line no-unused-expressions
         document.documentElement.webkitRequestFullscreen?.();
@@ -264,8 +265,7 @@ export const FuelDetail = () => {
       }}
     >
       <StyledCanvas id="code" />
-      {(refreshedVoucher?.refreshVoucher.voucher?.status === 1 ||
-        refreshedVoucher?.refreshVoucher.voucher?.status === 2) && (
+      {(refreshedVoucher?.status === 1 || refreshedVoucher?.status === 2) && (
         <StyledRefreshContainer>
           <StyledRefreshOverlay />
           <StyledRefreshButton
@@ -291,7 +291,7 @@ export const FuelDetail = () => {
     </Segment>
   );
 
-  const accountInfo = data && (
+  const accountInfo = account && (
     <Message attached="bottom" warning>
       <Icon name="help" />
       Not working? &nbsp;
@@ -301,7 +301,7 @@ export const FuelDetail = () => {
             onClick={() => {
               firebaseAnalytics.logEvent('show_account_info', {
                 fuelType,
-                email: data.getMeAVoucher.account?.email,
+                email: account.email,
               });
             }}
             basic
@@ -315,8 +315,8 @@ export const FuelDetail = () => {
         <Modal.Header>Account</Modal.Header>
         <Modal.Content image>
           <Modal.Description>
-            <p>Email: {data.getMeAVoucher?.account?.email}</p>
-            <p>Password: {data.getMeAVoucher?.account?.password}</p>
+            <p>Email: {account.email}</p>
+            <p>Password: {account.password}</p>
           </Modal.Description>
         </Modal.Content>
       </Modal>
@@ -356,7 +356,7 @@ export const FuelDetail = () => {
             {accountInfo}
             {showApp && (
               <VoucherScreen
-                voucher={data?.getMeAVoucher?.voucher}
+                voucher={voucher}
                 onClick={() => {
                   // eslint-disable-next-line no-unused-expressions
                   document.exitFullscreen?.();
