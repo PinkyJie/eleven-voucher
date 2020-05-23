@@ -30,6 +30,7 @@ import {
 } from '../../../generated/generated';
 import { Routes } from '../../../utils/constants';
 import { firebaseAnalytics } from '../../../utils/firebase';
+import { isMobileBrowser } from '../../../utils/is-mobile';
 import { FuelPriceContext } from '../../context';
 import { VoucherScreen } from '../VoucherScreen';
 
@@ -255,13 +256,19 @@ export const FuelDetail = () => {
       attached
       textAlign="center"
       onClick={() => {
+        const isMobile = isMobileBrowser();
+
         firebaseAnalytics.logEvent('view_voucher_in_app', {
           code: voucher.code,
           fuelType: voucher.fuelType,
+          isMobile,
         });
-        // eslint-disable-next-line no-unused-expressions
-        document.documentElement.webkitRequestFullscreen?.();
-        setShowApp(true);
+
+        if (isMobile) {
+          // eslint-disable-next-line no-unused-expressions
+          document.documentElement.webkitRequestFullscreen?.();
+          setShowApp(true);
+        }
       }}
     >
       <StyledCanvas id="code" />
